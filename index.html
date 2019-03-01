@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Awooo</title>
+	<script type='type/javascript' src='js/awoo.js'></script>
+</head>
+
+<body>
+  <div id="awoo-main"></div>
+  <script>
+	var flags = undefined;
+
+  var app = Elm.Awoo.init({
+    node: document.getElementById('elm'),
+		flags: flags
+  });
+
+	let awoo = document.getElementById('awoo-main');
+	if(awoo !== undefined && awoo !== null) {
+		//var app = Elm.Awoo.embed(awoo, {socketUrl: "ws://172.17.40.106:42300/awoo"})
+		var app = Elm.Awoo.embed(awoo, {socketUrl: "wss://echo.websocket.org"});
+	}
+  </script>
+</body>
+</html>
