@@ -124,6 +124,10 @@ func (p *Player) Play() {
 			p.gameChan <- chanmsg.New(chanmsg.PlayerList, p.UUID)
 		} else if m.PollTally {
 			p.gameChan <- chanmsg.New(chanmsg.Tally, p.UUID)
+		} else if m.Roleset != "" {
+			activity := chanmsg.New(chanmsg.SetRoleset, p.UUID)
+			activity.Roleset = m.Roleset
+			p.gameChan <- activity
 		} else if m.Vote != "" {
 			to, err := uuid.FromString(m.Vote)
 			if err != nil {

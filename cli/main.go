@@ -1,8 +1,8 @@
 package main
 
 import (
+	"log"
 	"time"
-	//"log"
 	//"fmt"
 
 	"stash.corp.synacor.com/hack/werewolf/cli/communicator"
@@ -12,6 +12,9 @@ import (
 )
 
 func main() {
+	for _, set := range roleset.List() {
+		log.Printf("%s: %v players", set.Name, len(set.Roles))
+	}
 	c := make(chan *player.Player)
 	game := game.New(c)
 

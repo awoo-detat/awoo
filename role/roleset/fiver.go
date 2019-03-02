@@ -7,7 +7,7 @@ import (
 func Fiver() *Roleset {
 	return &Roleset{
 		Name:        "Fast Fiver",
-		Description: "Four villagers. One wolf. Two days to find them.",
+		Description: "Two chances to catch the wolf, but both sides have some power.",
 		Roles: []*role.Role{
 			role.Werewolf(),
 			role.Cultist(),
@@ -16,4 +16,8 @@ func Fiver() *Roleset {
 			role.Villager(),
 		},
 	}
+}
+
+func init() {
+	registerRoleset(Fiver())
 }

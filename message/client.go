@@ -16,6 +16,7 @@ type ClientMessage struct {
 	PollTally      bool   `json:"pollTally"`
 	Vote           string `json:"voteFor"`
 	Time           string `json:"time"`
+	Roleset        string `json:"setRoleset"`
 }
 
 func Decode(raw []byte) *ClientMessage {

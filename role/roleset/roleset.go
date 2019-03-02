@@ -9,3 +9,15 @@ type Roleset struct {
 	Description string       `json:"description"`
 	Roles       []*role.Role `json:"roles"`
 }
+
+func List() map[string]*Roleset {
+	return sets
+}
+
+type RolesetMap map[string]*Roleset
+
+var sets = RolesetMap{}
+
+func registerRoleset(roleset *Roleset) {
+	sets[roleset.Name] = roleset
+}

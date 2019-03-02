@@ -71,7 +71,7 @@ func (g *Game) AddPlayer(p *player.Player) error {
 		p.Leader = true
 
 		// TODO
-		g.SetRoleset(roleset.Fiver())
+		//g.SetRoleset(roleset.Fiver())
 		//g.SetRoleset(roleset.Debug())
 	}
 	p.SetChan(g.gameChan)
@@ -123,22 +123,27 @@ func (g *Game) Start() error {
 }
 
 func (g *Game) NextPhase() {
+	g.UpdatePlayerList()
 	maxes := g.AliveMaxEvils()
+	g.NightActionQueue = []*FingerPoint{}
+	g.votes = make(map[*player.Player]uuid.UUID)
+	g.RebuildTally()
+
 	log.Printf("alive maxes: %v", maxes)
 	log.Printf("parity: %v", g.Parity())
-	if len(maxes) == 0 { // TODO HERE HERE HERE vvv
+
+	if len(maxes) == 0 {
 		g.End(role.Good)
 		return
 	} else if g.Parity() <= 0 {
 		g.End(role.Evil)
 		return
-	} // TODO hunter victory (len players = 2)
-	// here I'd end the day
-	// you should check for game end here
+	} else if len(g.PlayerList) == 2 {
+		g.End(role.Good)
+		return
+	}
 
-	g.votes = make(map[*player.Player]uuid.UUID)
 	g.Phase++
-	g.RebuildTally()
 
 	log.Printf("== game is now on phase %v ==", g.Phase)
 	g.Broadcast(message.Phase, g.Phase)
@@ -350,6 +355,11 @@ func (g *Game) HandlePlayerMessage() {
 		case chanmsg.Tally:
 			log.Printf("%s: requesting tally", from.Identifier())
 			from.Message(message.Tally, tally.Short(g.Tally))
+
+		case chanmsg.SetRoleset:
+			log.Printf("%s: setting roleset %s", from.Identifier(), activity.Roleset)
+			sets := roleset.List()
+			g.SetRoleset(sets[activity.Roleset])
 
 		case chanmsg.Vote:
 			log.Printf("%s: voting for %s", from.Identifier(), g.Players[activity.To].Identifier())

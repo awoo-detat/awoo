@@ -50,6 +50,7 @@ func (g *Game) StartAction(p *player.Player) *ActionResult {
 	}
 	if p.Role.StartAction&role.RandomMaxClear > 0 {
 		var clear string
+		// this, uh, isn't really random. TODO?
 		for _, player := range g.Players {
 			if p.UUID != player.UUID && player.Role.Parity > 0 {
 				clear = player.Identifier()

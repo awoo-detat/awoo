@@ -4,12 +4,16 @@ import (
 	"stash.corp.synacor.com/hack/werewolf/role"
 )
 
-func VanillaFiver() *Roleset {
+func Niner() *Roleset {
 	return &Roleset{
-		Name:        "Vanilla Fiver",
-		Description: "Four villagers. One wolf. Two days to find them.",
+		Name:        "Basic Niner",
+		Description: "There are two wolves to find, so keep your seer protected!",
 		Roles: []*role.Role{
 			role.Werewolf(),
+			role.Werewolf(),
+			role.Cultist(),
+			role.Hunter(),
+			role.Seer(),
 			role.Villager(),
 			role.Villager(),
 			role.Villager(),
@@ -19,5 +23,5 @@ func VanillaFiver() *Roleset {
 }
 
 func init() {
-	registerRoleset(VanillaFiver())
+	registerRoleset(Niner())
 }

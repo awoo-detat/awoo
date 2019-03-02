@@ -16,10 +16,10 @@ const (
 )
 
 type Activity struct {
-	Type int
-	From uuid.UUID
-	To   uuid.UUID
-	//Roleset
+	Type    int
+	From    uuid.UUID
+	To      uuid.UUID
+	Roleset string
 }
 
 func New(Type int, From uuid.UUID) *Activity {
