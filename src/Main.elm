@@ -98,7 +98,7 @@ init flags =
       , isLeader = False
       , role = Role "" "" False 0 0
       , playerlist = []
-      , rulesetName = "Werewolf (X Players)"
+      , rulesetName = ""
       , roleDialog = False
       , voteDialog = False
       , targetedDialog = False
@@ -125,6 +125,7 @@ type Msg
     | AckServerDialog
     | OpenVoteDialog
     | VoteAction String
+    | SetRules String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -143,12 +144,24 @@ update msg model =
                         "pleasewait" ->
                             case JD.decodeValue pleasewaitDecoder m.payload of
                                 Ok p ->
-                                    { model | isLeader = p.isLeader, gameState = Lobby, debugMsg = wsMsg } ! [ WS.send model.socketUrl (JE.encode 0 (JE.object [ ( "pollPlayerList", JE.bool True ) ])) ]
+                                    { model | isLeader = p.isLeader, gameState = Lobby } ! [ WS.send model.socketUrl (JE.encode 0 (JE.object [ ( "pollPlayerList", JE.bool True ) ])) ]
 
                                 Err err ->
                                     let
                                         _ =
                                             Debug.log "pleasewait payload error: " ( err, m.payload )
+                                    in
+                                    model ! []
+
+                        "roleset" ->
+                            case JD.decodeValue rolesetDecoder m.payload of
+                                Ok roleset ->
+                                    { model | rulesetName = roleset.name } ! []
+
+                                Err err ->
+                                    let
+                                        _ =
+                                            Debug.log "roleset payload error: " ( err, m.payload )
                                     in
                                     model ! []
 
@@ -311,6 +324,16 @@ update msg model =
                         )
                   ]
 
+        SetRules rulesetName ->
+            model
+                ! [ WS.send model.socketUrl
+                        (JE.encode 0
+                            (JE.object
+                                [ ( "setRoleset", JE.string rulesetName ) ]
+                            )
+                        )
+                  ]
+
 
 
 -- decoders
@@ -394,6 +417,31 @@ tallyDecoder =
         (JD.map2 TallyItem
             (JD.at [ "candidate" ] JD.string)
             (JD.at [ "votes" ] (JD.list JD.string))
+        )
+
+
+type alias RoleSet =
+    { name : String
+    , description : String
+    , roles : List Role
+    }
+
+
+rolesetDecoder : JD.Decoder RoleSet
+rolesetDecoder =
+    JD.map3 RoleSet
+        (JD.field "name" JD.string)
+        (JD.field "description" JD.string)
+        (JD.field "roles"
+            (JD.list
+                (JD.map5 Role
+                    (JD.field "name" JD.string)
+                    (JD.field "description" JD.string)
+                    (JD.field "alive" JD.bool)
+                    (JD.field "team" JD.int)
+                    (JD.field "night_action" JD.int)
+                )
+            )
         )
 
 
@@ -656,13 +704,18 @@ renderLobby model =
     [ div []
         [ div
             [ HA.class "current-rules" ]
-            [ span [] [ text "Current Ruleset:  " ]
-            , if model.isLeader then
-                span [] [ text model.rulesetName ]
+            [ if model.isLeader && model.rulesetName == "" then
+                div [ HA.class "rulesets" ]
+                    [ div [] [ text "Pick a Roleset:  " ]
+                    , div [ HA.class "ruleset", onClick (SetRules "Vanilla Fiver") ] [ text "Vanilla Fiver" ]
+                    , div [ HA.class "ruleset", onClick (SetRules "Fast Fiver") ] [ text "Fast Fiver" ]
+                    , div [ HA.class "ruleset", onClick (SetRules "Basic Niner") ] [ text "Basic Niner" ]
+                    ]
 
               else
                 span [] [ text model.rulesetName ]
             ]
+        , div [ HA.class "playerlist-info" ] [ text "Connected Players: " ]
         , div [ HA.class "playerlist" ]
             (renderLobbyList
                 model.playerlist

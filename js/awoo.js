@@ -13850,67 +13850,6 @@ var _segfaultvicta$awoo$Awoo$renderLobbyList = function (players) {
 		_1: {ctor: '[]'}
 	};
 };
-var _segfaultvicta$awoo$Awoo$renderLobby = function (model) {
-	return {
-		ctor: '::',
-		_0: A2(
-			_elm_lang$html$Html$div,
-			{ctor: '[]'},
-			{
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$div,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('current-rules'),
-						_1: {ctor: '[]'}
-					},
-					{
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$span,
-							{ctor: '[]'},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text('Current Ruleset:  '),
-								_1: {ctor: '[]'}
-							}),
-						_1: {
-							ctor: '::',
-							_0: model.isLeader ? A2(
-								_elm_lang$html$Html$span,
-								{ctor: '[]'},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text(model.rulesetName),
-									_1: {ctor: '[]'}
-								}) : A2(
-								_elm_lang$html$Html$span,
-								{ctor: '[]'},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text(model.rulesetName),
-									_1: {ctor: '[]'}
-								}),
-							_1: {ctor: '[]'}
-						}
-					}),
-				_1: {
-					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html$div,
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$class('playerlist'),
-							_1: {ctor: '[]'}
-						},
-						_segfaultvicta$awoo$Awoo$renderLobbyList(model.playerlist)),
-					_1: {ctor: '[]'}
-				}
-			}),
-		_1: {ctor: '[]'}
-	};
-};
 var _segfaultvicta$awoo$Awoo$renderTallyVote = function (vote) {
 	return A2(
 		_elm_lang$html$Html$span,
@@ -14362,6 +14301,27 @@ var _segfaultvicta$awoo$Awoo$tallyDecoder = _elm_lang$core$Json_Decode$list(
 				_1: {ctor: '[]'}
 			},
 			_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string))));
+var _segfaultvicta$awoo$Awoo$RoleSet = F3(
+	function (a, b, c) {
+		return {name: a, description: b, roles: c};
+	});
+var _segfaultvicta$awoo$Awoo$rolesetDecoder = A4(
+	_elm_lang$core$Json_Decode$map3,
+	_segfaultvicta$awoo$Awoo$RoleSet,
+	A2(_elm_lang$core$Json_Decode$field, 'name', _elm_lang$core$Json_Decode$string),
+	A2(_elm_lang$core$Json_Decode$field, 'description', _elm_lang$core$Json_Decode$string),
+	A2(
+		_elm_lang$core$Json_Decode$field,
+		'roles',
+		_elm_lang$core$Json_Decode$list(
+			A6(
+				_elm_lang$core$Json_Decode$map5,
+				_segfaultvicta$awoo$Awoo$Role,
+				A2(_elm_lang$core$Json_Decode$field, 'name', _elm_lang$core$Json_Decode$string),
+				A2(_elm_lang$core$Json_Decode$field, 'description', _elm_lang$core$Json_Decode$string),
+				A2(_elm_lang$core$Json_Decode$field, 'alive', _elm_lang$core$Json_Decode$bool),
+				A2(_elm_lang$core$Json_Decode$field, 'team', _elm_lang$core$Json_Decode$int),
+				A2(_elm_lang$core$Json_Decode$field, 'night_action', _elm_lang$core$Json_Decode$int)))));
 var _segfaultvicta$awoo$Awoo$Dead = {ctor: 'Dead'};
 var _segfaultvicta$awoo$Awoo$FinalEvil = {ctor: 'FinalEvil'};
 var _segfaultvicta$awoo$Awoo$FinalGood = {ctor: 'FinalGood'};
@@ -14375,11 +14335,11 @@ var _segfaultvicta$awoo$Awoo$update = F2(
 		var _p1 = msg;
 		switch (_p1.ctor) {
 			case 'Recv':
-				var _p24 = _p1._0;
-				var _p2 = A2(_elm_lang$core$Json_Decode$decodeString, _segfaultvicta$awoo$Awoo$messageDecoder, _p24);
+				var _p26 = _p1._0;
+				var _p2 = A2(_elm_lang$core$Json_Decode$decodeString, _segfaultvicta$awoo$Awoo$messageDecoder, _p26);
 				if (_p2.ctor === 'Ok') {
-					var _p22 = _p2._0;
-					var _p3 = _p22.message;
+					var _p24 = _p2._0;
+					var _p3 = _p24.message;
 					switch (_p3) {
 						case 'awoo':
 							return A2(
@@ -14396,13 +14356,13 @@ var _segfaultvicta$awoo$Awoo$update = F2(
 									{gameState: _segfaultvicta$awoo$Awoo$GameCannotBeJoined}),
 								{ctor: '[]'});
 						case 'pleasewait':
-							var _p4 = A2(_elm_lang$core$Json_Decode$decodeValue, _segfaultvicta$awoo$Awoo$pleasewaitDecoder, _p22.payload);
+							var _p4 = A2(_elm_lang$core$Json_Decode$decodeValue, _segfaultvicta$awoo$Awoo$pleasewaitDecoder, _p24.payload);
 							if (_p4.ctor === 'Ok') {
 								return A2(
 									_elm_lang$core$Platform_Cmd_ops['!'],
 									_elm_lang$core$Native_Utils.update(
 										model,
-										{isLeader: _p4._0.isLeader, gameState: _segfaultvicta$awoo$Awoo$Lobby, debugMsg: _p24}),
+										{isLeader: _p4._0.isLeader, gameState: _segfaultvicta$awoo$Awoo$Lobby}),
 									{
 										ctor: '::',
 										_0: A2(
@@ -14427,62 +14387,81 @@ var _segfaultvicta$awoo$Awoo$update = F2(
 								var _p5 = A2(
 									_elm_lang$core$Debug$log,
 									'pleasewait payload error: ',
-									{ctor: '_Tuple2', _0: _p4._0, _1: _p22.payload});
+									{ctor: '_Tuple2', _0: _p4._0, _1: _p24.payload});
+								return A2(
+									_elm_lang$core$Platform_Cmd_ops['!'],
+									model,
+									{ctor: '[]'});
+							}
+						case 'roleset':
+							var _p6 = A2(_elm_lang$core$Json_Decode$decodeValue, _segfaultvicta$awoo$Awoo$rolesetDecoder, _p24.payload);
+							if (_p6.ctor === 'Ok') {
+								return A2(
+									_elm_lang$core$Platform_Cmd_ops['!'],
+									_elm_lang$core$Native_Utils.update(
+										model,
+										{rulesetName: _p6._0.name}),
+									{ctor: '[]'});
+							} else {
+								var _p7 = A2(
+									_elm_lang$core$Debug$log,
+									'roleset payload error: ',
+									{ctor: '_Tuple2', _0: _p6._0, _1: _p24.payload});
 								return A2(
 									_elm_lang$core$Platform_Cmd_ops['!'],
 									model,
 									{ctor: '[]'});
 							}
 						case 'playerlist':
-							var _p6 = A2(_elm_lang$core$Json_Decode$decodeValue, _segfaultvicta$awoo$Awoo$playerlistDecoder, _p22.payload);
-							if (_p6.ctor === 'Ok') {
+							var _p8 = A2(_elm_lang$core$Json_Decode$decodeValue, _segfaultvicta$awoo$Awoo$playerlistDecoder, _p24.payload);
+							if (_p8.ctor === 'Ok') {
 								return A2(
 									_elm_lang$core$Platform_Cmd_ops['!'],
 									_elm_lang$core$Native_Utils.update(
 										model,
-										{playerlist: _p6._0}),
+										{playerlist: _p8._0}),
 									{ctor: '[]'});
 							} else {
-								var _p7 = A2(
+								var _p9 = A2(
 									_elm_lang$core$Debug$log,
 									'playerlist payload error',
-									{ctor: '_Tuple2', _0: _p6._0, _1: _p22.payload});
+									{ctor: '_Tuple2', _0: _p8._0, _1: _p24.payload});
 								return A2(
 									_elm_lang$core$Platform_Cmd_ops['!'],
 									model,
 									{ctor: '[]'});
 							}
 						case 'role':
-							var _p8 = A2(_elm_lang$core$Json_Decode$decodeValue, _segfaultvicta$awoo$Awoo$roleDecoder, _p22.payload);
-							if (_p8.ctor === 'Ok') {
+							var _p10 = A2(_elm_lang$core$Json_Decode$decodeValue, _segfaultvicta$awoo$Awoo$roleDecoder, _p24.payload);
+							if (_p10.ctor === 'Ok') {
 								return A2(
 									_elm_lang$core$Platform_Cmd_ops['!'],
 									_elm_lang$core$Native_Utils.update(
 										model,
-										{role: _p8._0}),
+										{role: _p10._0}),
 									{ctor: '[]'});
 							} else {
-								var _p9 = A2(
+								var _p11 = A2(
 									_elm_lang$core$Debug$log,
 									'role payload error',
-									{ctor: '_Tuple2', _0: _p8._0, _1: _p22.payload});
+									{ctor: '_Tuple2', _0: _p10._0, _1: _p24.payload});
 								return A2(
 									_elm_lang$core$Platform_Cmd_ops['!'],
 									model,
 									{ctor: '[]'});
 							}
 						case 'phase':
-							var _p10 = A2(_elm_lang$core$Json_Decode$decodeValue, _elm_lang$core$Json_Decode$int, _p22.payload);
-							if (_p10.ctor === 'Ok') {
-								var _p11 = _p10._0;
+							var _p12 = A2(_elm_lang$core$Json_Decode$decodeValue, _elm_lang$core$Json_Decode$int, _p24.payload);
+							if (_p12.ctor === 'Ok') {
+								var _p13 = _p12._0;
 								var state = _elm_lang$core$Native_Utils.eq(
-									A2(_elm_lang$core$Basics_ops['%'], _p11, 2),
+									A2(_elm_lang$core$Basics_ops['%'], _p13, 2),
 									1) ? _segfaultvicta$awoo$Awoo$Day : _segfaultvicta$awoo$Awoo$Night;
 								return (!_elm_lang$core$Native_Utils.eq(model.gameState, _segfaultvicta$awoo$Awoo$Dead)) ? A2(
 									_elm_lang$core$Platform_Cmd_ops['!'],
 									_elm_lang$core$Native_Utils.update(
 										model,
-										{gameState: state, phase: _p11, voteDialog: false, roleDialog: false, targetedDialog: false}),
+										{gameState: state, phase: _p13, voteDialog: false, roleDialog: false, targetedDialog: false}),
 									{
 										ctor: '::',
 										_0: A2(
@@ -14507,23 +14486,23 @@ var _segfaultvicta$awoo$Awoo$update = F2(
 									model,
 									{ctor: '[]'});
 							} else {
-								var _p12 = A2(
+								var _p14 = A2(
 									_elm_lang$core$Debug$log,
 									'gamestate payload error',
-									{ctor: '_Tuple2', _0: _p10._0, _1: _p22.payload});
+									{ctor: '_Tuple2', _0: _p12._0, _1: _p24.payload});
 								return A2(
 									_elm_lang$core$Platform_Cmd_ops['!'],
 									model,
 									{ctor: '[]'});
 							}
 						case 'tally':
-							var _p13 = A2(_elm_lang$core$Json_Decode$decodeValue, _segfaultvicta$awoo$Awoo$tallyDecoder, _p22.payload);
-							if (_p13.ctor === 'Ok') {
+							var _p15 = A2(_elm_lang$core$Json_Decode$decodeValue, _segfaultvicta$awoo$Awoo$tallyDecoder, _p24.payload);
+							if (_p15.ctor === 'Ok') {
 								return A2(
 									_elm_lang$core$Platform_Cmd_ops['!'],
 									_elm_lang$core$Native_Utils.update(
 										model,
-										{tally: _p13._0}),
+										{tally: _p15._0}),
 									{
 										ctor: '::',
 										_0: A2(
@@ -14545,29 +14524,29 @@ var _segfaultvicta$awoo$Awoo$update = F2(
 										_1: {ctor: '[]'}
 									});
 							} else {
-								var _p14 = A2(
+								var _p16 = A2(
 									_elm_lang$core$Debug$log,
 									'tally payload error',
-									{ctor: '_Tuple2', _0: _p13._0, _1: _p22.payload});
+									{ctor: '_Tuple2', _0: _p15._0, _1: _p24.payload});
 								return A2(
 									_elm_lang$core$Platform_Cmd_ops['!'],
 									model,
 									{ctor: '[]'});
 							}
 						case 'targeted':
-							var _p15 = A2(_elm_lang$core$Json_Decode$decodeValue, _segfaultvicta$awoo$Awoo$targetedDecoder, _p22.payload);
-							if (_p15.ctor === 'Ok') {
+							var _p17 = A2(_elm_lang$core$Json_Decode$decodeValue, _segfaultvicta$awoo$Awoo$targetedDecoder, _p24.payload);
+							if (_p17.ctor === 'Ok') {
 								return A2(
 									_elm_lang$core$Platform_Cmd_ops['!'],
 									_elm_lang$core$Native_Utils.update(
 										model,
-										{targetedDialog: true, lastTargeted: _p15._0}),
+										{targetedDialog: true, lastTargeted: _p17._0}),
 									{ctor: '[]'});
 							} else {
-								var _p16 = A2(
+								var _p18 = A2(
 									_elm_lang$core$Debug$log,
 									'targeted payload error',
-									{ctor: '_Tuple2', _0: _p15._0, _1: _p22.payload});
+									{ctor: '_Tuple2', _0: _p17._0, _1: _p24.payload});
 								return A2(
 									_elm_lang$core$Platform_Cmd_ops['!'],
 									model,
@@ -14581,28 +14560,28 @@ var _segfaultvicta$awoo$Awoo$update = F2(
 									{gameState: _segfaultvicta$awoo$Awoo$Dead}),
 								{ctor: '[]'});
 						case 'privatemessage':
-							var _p17 = A2(_elm_lang$core$Json_Decode$decodeValue, _elm_lang$core$Json_Decode$string, _p22.payload);
-							if (_p17.ctor === 'Ok') {
+							var _p19 = A2(_elm_lang$core$Json_Decode$decodeValue, _elm_lang$core$Json_Decode$string, _p24.payload);
+							if (_p19.ctor === 'Ok') {
 								return A2(
 									_elm_lang$core$Platform_Cmd_ops['!'],
 									_elm_lang$core$Native_Utils.update(
 										model,
-										{serverDialog: true, serverMessage: _p17._0}),
+										{serverDialog: true, serverMessage: _p19._0}),
 									{ctor: '[]'});
 							} else {
-								var _p18 = A2(
+								var _p20 = A2(
 									_elm_lang$core$Debug$log,
 									'private message payload error',
-									{ctor: '_Tuple2', _0: _p17._0, _1: _p22.payload});
+									{ctor: '_Tuple2', _0: _p19._0, _1: _p24.payload});
 								return A2(
 									_elm_lang$core$Platform_Cmd_ops['!'],
 									model,
 									{ctor: '[]'});
 							}
 						case 'victory':
-							var _p19 = A2(_elm_lang$core$Json_Decode$decodeValue, _elm_lang$core$Json_Decode$int, _p22.payload);
-							if (_p19.ctor === 'Ok') {
-								var victorystate = _elm_lang$core$Native_Utils.eq(_p19._0, 1) ? _segfaultvicta$awoo$Awoo$FinalEvil : _segfaultvicta$awoo$Awoo$FinalGood;
+							var _p21 = A2(_elm_lang$core$Json_Decode$decodeValue, _elm_lang$core$Json_Decode$int, _p24.payload);
+							if (_p21.ctor === 'Ok') {
+								var victorystate = _elm_lang$core$Native_Utils.eq(_p21._0, 1) ? _segfaultvicta$awoo$Awoo$FinalEvil : _segfaultvicta$awoo$Awoo$FinalGood;
 								return A2(
 									_elm_lang$core$Platform_Cmd_ops['!'],
 									_elm_lang$core$Native_Utils.update(
@@ -14610,29 +14589,29 @@ var _segfaultvicta$awoo$Awoo$update = F2(
 										{gameState: victorystate}),
 									{ctor: '[]'});
 							} else {
-								var _p20 = A2(
+								var _p22 = A2(
 									_elm_lang$core$Debug$log,
 									'victory payload error',
-									{ctor: '_Tuple2', _0: _p19._0, _1: _p22.payload});
+									{ctor: '_Tuple2', _0: _p21._0, _1: _p24.payload});
 								return A2(
 									_elm_lang$core$Platform_Cmd_ops['!'],
 									model,
 									{ctor: '[]'});
 							}
 						default:
-							var _p21 = A2(_elm_lang$core$Debug$log, 'unknown command from server', _p24);
+							var _p23 = A2(_elm_lang$core$Debug$log, 'unknown command from server', _p26);
 							return A2(
 								_elm_lang$core$Platform_Cmd_ops['!'],
 								_elm_lang$core$Native_Utils.update(
 									model,
-									{debugMsg: _p24}),
+									{debugMsg: _p26}),
 								{ctor: '[]'});
 					}
 				} else {
-					var _p23 = A2(
+					var _p25 = A2(
 						_elm_lang$core$Debug$log,
 						'recv payload error: ',
-						{ctor: '_Tuple2', _0: _p2._0, _1: _p24});
+						{ctor: '_Tuple2', _0: _p2._0, _1: _p26});
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						model,
@@ -14697,13 +14676,13 @@ var _segfaultvicta$awoo$Awoo$update = F2(
 						model,
 						{voteDialog: true}),
 					{ctor: '[]'});
-			default:
-				var _p25 = _p1._0;
+			case 'VoteAction':
+				var _p27 = _p1._0;
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
-						{voteDialog: false, votedUUID: _p25}),
+						{voteDialog: false, votedUUID: _p27}),
 					{
 						ctor: '::',
 						_0: A2(
@@ -14718,7 +14697,7 @@ var _segfaultvicta$awoo$Awoo$update = F2(
 										_0: {
 											ctor: '_Tuple2',
 											_0: 'voteFor',
-											_1: _elm_lang$core$Json_Encode$string(_p25)
+											_1: _elm_lang$core$Json_Encode$string(_p27)
 										},
 										_1: {
 											ctor: '::',
@@ -14730,6 +14709,30 @@ var _segfaultvicta$awoo$Awoo$update = F2(
 											},
 											_1: {ctor: '[]'}
 										}
+									}))),
+						_1: {ctor: '[]'}
+					});
+			default:
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					model,
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$websocket$WebSocket$send,
+							model.socketUrl,
+							A2(
+								_elm_lang$core$Json_Encode$encode,
+								0,
+								_elm_lang$core$Json_Encode$object(
+									{
+										ctor: '::',
+										_0: {
+											ctor: '_Tuple2',
+											_0: 'setRoleset',
+											_1: _elm_lang$core$Json_Encode$string(_p1._0)
+										},
+										_1: {ctor: '[]'}
 									}))),
 						_1: {ctor: '[]'}
 					});
@@ -14748,7 +14751,7 @@ var _segfaultvicta$awoo$Awoo$init = function (flags) {
 			isLeader: false,
 			role: A5(_segfaultvicta$awoo$Awoo$Role, '', '', false, 0, 0),
 			playerlist: {ctor: '[]'},
-			rulesetName: 'Werewolf (X Players)',
+			rulesetName: '',
 			roleDialog: false,
 			voteDialog: false,
 			targetedDialog: false,
@@ -14759,6 +14762,145 @@ var _segfaultvicta$awoo$Awoo$init = function (flags) {
 			tally: {ctor: '[]'}
 		},
 		_1: _elm_lang$core$Platform_Cmd$none
+	};
+};
+var _segfaultvicta$awoo$Awoo$SetRules = function (a) {
+	return {ctor: 'SetRules', _0: a};
+};
+var _segfaultvicta$awoo$Awoo$renderLobby = function (model) {
+	return {
+		ctor: '::',
+		_0: A2(
+			_elm_lang$html$Html$div,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$div,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('current-rules'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: (model.isLeader && _elm_lang$core$Native_Utils.eq(model.rulesetName, '')) ? A2(
+							_elm_lang$html$Html$div,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('rulesets'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$div,
+									{ctor: '[]'},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text('Pick a Roleset:  '),
+										_1: {ctor: '[]'}
+									}),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$div,
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$class('ruleset'),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$html$Html_Events$onClick(
+													_segfaultvicta$awoo$Awoo$SetRules('Vanilla Fiver')),
+												_1: {ctor: '[]'}
+											}
+										},
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html$text('Vanilla Fiver'),
+											_1: {ctor: '[]'}
+										}),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$div,
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$class('ruleset'),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$html$Html_Events$onClick(
+														_segfaultvicta$awoo$Awoo$SetRules('Fast Fiver')),
+													_1: {ctor: '[]'}
+												}
+											},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text('Fast Fiver'),
+												_1: {ctor: '[]'}
+											}),
+										_1: {
+											ctor: '::',
+											_0: A2(
+												_elm_lang$html$Html$div,
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html_Attributes$class('ruleset'),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$html$Html_Events$onClick(
+															_segfaultvicta$awoo$Awoo$SetRules('Basic Niner')),
+														_1: {ctor: '[]'}
+													}
+												},
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html$text('Basic Niner'),
+													_1: {ctor: '[]'}
+												}),
+											_1: {ctor: '[]'}
+										}
+									}
+								}
+							}) : A2(
+							_elm_lang$html$Html$span,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(model.rulesetName),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('playerlist-info'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('Connected Players: '),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$div,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('playerlist'),
+								_1: {ctor: '[]'}
+							},
+							_segfaultvicta$awoo$Awoo$renderLobbyList(model.playerlist)),
+						_1: {ctor: '[]'}
+					}
+				}
+			}),
+		_1: {ctor: '[]'}
 	};
 };
 var _segfaultvicta$awoo$Awoo$VoteAction = function (a) {
@@ -15056,8 +15198,8 @@ var _segfaultvicta$awoo$Awoo$view = function (model) {
 			_1: {ctor: '[]'}
 		},
 		function () {
-			var _p26 = model.gameState;
-			switch (_p26.ctor) {
+			var _p28 = model.gameState;
+			switch (_p28.ctor) {
 				case 'Indeterminate':
 					return {
 						ctor: '::',
@@ -15332,7 +15474,7 @@ var _segfaultvicta$awoo$Awoo$main = _elm_lang$html$Html$programWithFlags(
 var Elm = {};
 Elm['Awoo'] = Elm['Awoo'] || {};
 if (typeof _segfaultvicta$awoo$Awoo$main !== 'undefined') {
-    _segfaultvicta$awoo$Awoo$main(Elm['Awoo'], 'Awoo', {"types":{"unions":{"Awoo.Msg":{"args":[],"tags":{"AckServerDialog":[],"Recv":["String"],"OpenVoteDialog":[],"EnterName":[],"OpenRoleDialog":[],"AckNonServerDialogs":[],"UpdateName":["String"],"VoteAction":["String"]}}},"aliases":{},"message":"Awoo.Msg"},"versions":{"elm":"0.18.0"}});
+    _segfaultvicta$awoo$Awoo$main(Elm['Awoo'], 'Awoo', {"types":{"unions":{"Awoo.Msg":{"args":[],"tags":{"AckServerDialog":[],"SetRules":["String"],"Recv":["String"],"OpenVoteDialog":[],"EnterName":[],"OpenRoleDialog":[],"AckNonServerDialogs":[],"UpdateName":["String"],"VoteAction":["String"]}}},"aliases":{},"message":"Awoo.Msg"},"versions":{"elm":"0.18.0"}});
 }
 
 if (typeof define === "function" && define['amd'])

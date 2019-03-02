@@ -25,6 +25,10 @@ a:not([href]):not([tabindex]) {
 	padding: 5px;
 }
 
+.current-rules {
+	text-align: center;
+}
+
 .daytime {
 	background-color: #FFCC99;
 	height: 1000px;
