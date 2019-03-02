@@ -3,24 +3,27 @@
 <html>
 <head>
   <meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Awooo</title>
-	<script type='type/javascript' src='js/awoo.js'></script>
+	<script defer src="https://use.fontawesome.com/releases/v5.7.2/js/all.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+	<link rel="stylesheet" href="assets/awoo.css">
+	<script type='text/javascript' src='js/awoo.js'></script>
+	<link href="https://fonts.googleapis.com/css?family=Indie+Flower" rel="stylesheet">
 </head>
 
 <body>
+	<nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark">
+		<div class="container d-flex justify-content-center">
+			<a class="navbar-brand"> WEREWOLF </a>
+		</div>
+	</nav>
   <div id="awoo-main"></div>
   <script>
-	var flags = undefined;
-
-  var app = Elm.Awoo.init({
-    node: document.getElementById('elm'),
-		flags: flags
-  });
-
 	let awoo = document.getElementById('awoo-main');
 	if(awoo !== undefined && awoo !== null) {
-		//var app = Elm.Awoo.embed(awoo, {socketUrl: "ws://172.17.40.106:42300/awoo"})
-		var app = Elm.Awoo.embed(awoo, {socketUrl: "wss://echo.websocket.org"});
+		var app = Elm.Awoo.embed(awoo, {socketUrl: "ws://madmins-MacBook-Pro-2.local:42300"})
 	}
   </script>
 </body>
