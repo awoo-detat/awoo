@@ -9,6 +9,5 @@ func Villager() *Role {
 		Health:         1,
 		Parity:         1,
 		Alive:          true,
-		NightAction:    false,
 	}
 }

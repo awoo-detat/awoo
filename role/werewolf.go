@@ -9,6 +9,7 @@ func Werewolf() *Role {
 		Health:         1,
 		Parity:         -1,
 		Alive:          true,
-		NightAction:    true,
+		NightAction:    NightKill,
+		StartAction:    MaxList,
 	}
 }

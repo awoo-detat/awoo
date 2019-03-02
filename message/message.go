@@ -17,6 +17,8 @@ const (
 	Tally      = "tally"
 	Targeted   = "targeted"
 	Victory    = "victory"
+	Private    = "privatemessage"
+	Dead       = "dead"
 	Error      = "error"
 )
 

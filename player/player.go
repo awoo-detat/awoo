@@ -48,6 +48,13 @@ func New(socket Communicator, joinChan chan *Player) *Player {
 	return p
 }
 
+func (p *Player) Identifier() string {
+	if p.Name != "" {
+		return p.Name
+	}
+	return p.UUID.String()
+}
+
 func (p *Player) Reveal() *Revealed {
 	r := &Revealed{
 		Name: p.Name,
@@ -81,6 +88,12 @@ func (p *Player) Vote(to uuid.UUID) {
 	p.gameChan <- vote
 }
 
+func (p *Player) NightAction(to uuid.UUID) {
+	action := chanmsg.New(chanmsg.NightAction, p.UUID)
+	action.To = to
+	p.gameChan <- action
+}
+
 // Play is the loop that runs for a websocket to communicate between the
 // client and server. If websockets are not being used, this will not trigger.
 func (p *Player) Play() {
@@ -101,7 +114,6 @@ func (p *Player) Play() {
 		}
 
 		m := message.Decode(content)
-		log.Printf("%s: %+v", p.UUID, m)
 		if m.JoinName != "" {
 			p.Name = m.JoinName
 
@@ -110,15 +122,23 @@ func (p *Player) Play() {
 			p.joinChan <- p
 		} else if m.PollPlayerList {
 			p.gameChan <- chanmsg.New(chanmsg.PlayerList, p.UUID)
+		} else if m.PollTally {
+			p.gameChan <- chanmsg.New(chanmsg.Tally, p.UUID)
 		} else if m.Vote != "" {
 			to, err := uuid.FromString(m.Vote)
 			if err != nil {
 				p.Message(message.Error, err)
-			} else {
+				continue
+			}
+			if m.Time == message.TimeDay {
 				p.Vote(to)
+			} else if m.Time == message.TimeNight {
+				p.NightAction(to)
+			} else {
+				p.Message(message.Error, "jcantwell what did you do it is neither day nor night; are we trapped in this eternal twilight together now?")
 			}
 		} else {
-			log.Printf("unknown request: %s", content)
+			log.Printf("unknown request from %s: %s", p.Identifier(), content)
 		}
 	}
 }

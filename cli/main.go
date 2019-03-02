@@ -14,11 +14,11 @@ import (
 func main() {
 	c := make(chan *player.Player)
 	game := game.New(c)
-	game.SetRoleset(roleset.Fiver())
 
 	dan := player.New(communicator.New("dan.log"), c)
 	dan.Name = "Dan"
 	game.AddPlayer(dan)
+	game.SetRoleset(roleset.Fiver())
 	jon := player.New(communicator.New("jon.log"), c)
 	jon.Name = "Jon"
 	game.AddPlayer(jon)
@@ -32,12 +32,51 @@ func main() {
 	julia.Name = "Julia"
 	game.AddPlayer(julia)
 
-	jon.Vote(tyler.UUID)
-	dan.Vote(tyler.UUID)
-	julia.Vote(dan.UUID)
-	matt.Vote(jon.UUID)
-	jon.Vote(dan.UUID)
-	tyler.Vote(dan.UUID)
+	// game has five players and has started
+
+	var wolf *player.Player
+	var villagers []*player.Player
+
+	// hack the planet
+	if dan.Role.Name == "Werewolf" {
+		wolf = dan
+	} else {
+		villagers = append(villagers, dan)
+	}
+	if jon.Role.Name == "Werewolf" {
+		wolf = jon
+	} else {
+		villagers = append(villagers, jon)
+	}
+	if tyler.Role.Name == "Werewolf" {
+		wolf = tyler
+	} else {
+		villagers = append(villagers, tyler)
+	}
+	if matt.Role.Name == "Werewolf" {
+		wolf = matt
+	} else {
+		villagers = append(villagers, matt)
+	}
+	if julia.Role.Name == "Werewolf" {
+		wolf = julia
+	} else {
+		villagers = append(villagers, julia)
+	}
+
+	wolf.Vote(villagers[0].UUID)
+	villagers[1].Vote(villagers[0].UUID)
+	villagers[2].Vote(villagers[0].UUID)
+
+	villagers[1].NightAction(villagers[2].UUID)
+	villagers[2].NightAction(villagers[1].UUID)
+	villagers[3].NightAction(villagers[2].UUID)
+	wolf.NightAction(villagers[1].UUID)
+
+	wolf.Vote(villagers[2].UUID)
+	villagers[2].Vote(wolf.UUID)
+	villagers[3].Vote(wolf.UUID)
+	//villagers[3].Vote(villagers[2].UUID)
 
 	time.Sleep(1 * time.Second)
 }

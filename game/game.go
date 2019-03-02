@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"time"
 
 	"stash.corp.synacor.com/hack/werewolf/chanmsg"
 	"stash.corp.synacor.com/hack/werewolf/message"
 	"stash.corp.synacor.com/hack/werewolf/player"
 	"stash.corp.synacor.com/hack/werewolf/role"
 	"stash.corp.synacor.com/hack/werewolf/role/roleset"
+	"stash.corp.synacor.com/hack/werewolf/tally"
 
 	"github.com/gofrs/uuid"
 )
@@ -22,14 +24,15 @@ const (
 )
 
 type Game struct {
-	Players    map[uuid.UUID]*player.Player        `json:"-"`
-	PlayerList []*player.Player                    `json:"players"`
-	Roleset    *roleset.Roleset                    `json:"roleset"`
-	votes      map[*player.Player]uuid.UUID        `json:"-"`
-	Tally      map[*player.Player][]*player.Player `json:"tally"`
-	State      int                                 `json:"game_state"`
-	Phase      int                                 `json:"phase"`
-	gameChan   chan *chanmsg.Activity              `json:"-"`
+	Players          map[uuid.UUID]*player.Player `json:"-"`
+	PlayerList       []*player.Player             `json:"players"`
+	Roleset          *roleset.Roleset             `json:"roleset"`
+	votes            map[*player.Player]uuid.UUID `json:"-"`
+	Tally            []*tally.TallyItem           `json:"tally"`
+	State            int                          `json:"game_state"`
+	Phase            int                          `json:"phase"`
+	NightActionQueue []*FingerPoint               `json:"-"`
+	gameChan         chan *chanmsg.Activity       `json:"-"`
 }
 
 func New(joinChan chan *player.Player) *Game {
@@ -62,13 +65,14 @@ func (g *Game) AddPlayer(p *player.Player) error {
 		return fmt.Errorf("cannot add player: game is not in setup phase")
 	}
 
-	log.Printf("new player: %s", p.UUID)
+	log.Printf("new player: %s", p.Identifier())
 	if len(g.Players) == 0 {
-		log.Printf("setting leader: %s", p.UUID)
+		log.Printf("setting leader: %s", p.Identifier())
 		p.Leader = true
 
 		// TODO
 		g.SetRoleset(roleset.Fiver())
+		//g.SetRoleset(roleset.Debug())
 	}
 	p.SetChan(g.gameChan)
 
@@ -98,9 +102,12 @@ func (g *Game) Start() error {
 		return fmt.Errorf("cannot start game: game is not in setup phase")
 	}
 
+	log.Println("== role selection ==")
+	rand.Seed(time.Now().UnixNano())
 	roleOrder := rand.Perm(len(g.Roleset.Roles))
 	for k, v := range g.PlayerList {
 		r := g.Roleset.Roles[roleOrder[k]]
+		log.Printf("%s: %s", v.Identifier(), r.Name)
 		g.Players[v.UUID].Role = r
 		g.Players[v.UUID].Message(message.Role, r)
 	}
@@ -109,31 +116,67 @@ func (g *Game) Start() error {
 
 	g.State = Running
 	g.NextPhase()
+	g.ProcessStartActionQueue()
 	//g.Broadcast(message.GameState, g.State)
 
 	return nil
 }
 
 func (g *Game) NextPhase() {
+	maxes := g.AliveMaxEvils()
+	log.Printf("alive maxes: %v", maxes)
+	log.Printf("parity: %v", g.Parity())
+	if len(maxes) == 0 { // TODO HERE HERE HERE vvv
+		g.End(role.Good)
+		return
+	} else if g.Parity() <= 0 {
+		g.End(role.Evil)
+		return
+	} // TODO hunter victory (len players = 2)
+	// here I'd end the day
+	// you should check for game end here
+
 	g.votes = make(map[*player.Player]uuid.UUID)
 	g.Phase++
 	g.RebuildTally()
+
+	log.Printf("== game is now on phase %v ==", g.Phase)
 	g.Broadcast(message.Phase, g.Phase)
+}
+
+func (g *Game) Parity() int {
+	parity := 0
+	for _, p := range g.Players {
+		if p.Role.Alive {
+			parity += p.Role.Parity
+		}
+	}
+	return parity
 }
 
 // RebuildTally calculates the current tally based on individual votes.
 // If there are no votes, it essentially clears it.
 func (g *Game) RebuildTally() {
-	tally := make(map[*player.Player][]*player.Player)
+	t := make(map[*player.Player][]*player.Player)
+
 	for _, p := range g.PlayerList {
-		tally[p] = []*player.Player{}
+		t[p] = []*player.Player{}
 	}
 
 	for from, to := range g.votes {
-		tally[g.Players[to]] = append(tally[g.Players[to]], from)
+		t[g.Players[to]] = append(t[g.Players[to]], from)
 	}
 
-	g.Tally = tally
+	list := []*tally.TallyItem{}
+	for c, v := range t {
+		item := tally.Item(c, v)
+		list = append(list, item)
+	}
+	g.Tally = list
+
+	if g.Day() {
+		g.Broadcast(message.Tally, tally.Short(g.Tally))
+	}
 }
 
 func (g *Game) SetRoleset(r *roleset.Roleset) error {
@@ -158,7 +201,6 @@ func (g *Game) Vote(from *player.Player, to uuid.UUID) error {
 		return err
 	}
 
-	log.Printf("from %s", from.Name)
 	g.votes[from] = to
 	g.RebuildTally()
 
@@ -176,29 +218,24 @@ func (g *Game) EndDay(ousted *player.Player) {
 	}
 	revealed := ousted.Reveal()
 
-	log.Printf("%+v", revealed)
+	log.Printf("killed: %s (%s)", revealed.Name, revealed.RoleName)
+	g.NextPhase()
 	g.Broadcast(message.Targeted, revealed)
-
-	maxes := g.AliveMaxEvils()
-	if maxes == 0 { // TODO HERE HERE HERE vvv
-		g.End(role.Good)
-		//} else if g.Parity() <= 0 {
-		//g.End(role.Evil)
-	} // TODO hunter victory
-	// here I'd end the day
+	ousted.Message(message.Dead, "")
 }
 
-func (g *Game) AliveMaxEvils() int {
-	maxes := 0
+func (g *Game) AliveMaxEvils() []string {
+	var maxes []string
 	for _, p := range g.PlayerList {
 		if p.Role.Parity < 0 {
-			maxes++
+			maxes = append(maxes, p.Identifier())
 		}
 	}
 	return maxes
 }
 
 func (g *Game) End(victor int) {
+	log.Printf("== game over. victor: %v ==", victor)
 	g.Broadcast(message.Victory, victor)
 	g.State = Finished
 }
@@ -210,12 +247,50 @@ func (g *Game) VotedOut() *player.Player {
 		threshold++
 	}
 
-	for p, votes := range g.Tally {
-		if len(votes) >= threshold {
-			return p
+	for _, item := range g.Tally {
+		if len(item.Votes) >= threshold {
+			return item.Candidate
 		}
 	}
 	return nil
+}
+
+func (g *Game) QueueNightAction(fp *FingerPoint) {
+	g.NightActionQueue = append(g.NightActionQueue, fp)
+	log.Printf("%v / %v actions", len(g.NightActionQueue), len(g.PlayerList))
+	if len(g.NightActionQueue) >= len(g.PlayerList) {
+		g.ProcessNightActionQueue()
+	}
+}
+
+func (g *Game) ProcessStartActionQueue() {
+	for _, p := range g.Players {
+		result := g.StartAction(p)
+		if result.PlayerMessage != "" {
+			p.Message(message.Private, result.PlayerMessage)
+		}
+	}
+}
+
+func (g *Game) ProcessNightActionQueue() {
+	var deaths []*player.Revealed
+	for _, action := range g.NightActionQueue {
+		result := g.NightAction(action)
+		if result.PlayerMessage != "" {
+			action.From.Message(message.Private, result.PlayerMessage)
+		}
+		if result.Killed != nil {
+			deaths = append(deaths, action.To.Reveal())
+			action.To.Message(message.Dead, "")
+		}
+	}
+
+	g.NextPhase()
+
+	if len(deaths) > 0 {
+		// TODO maybe more than one death?
+		g.Broadcast(message.Targeted, deaths[0])
+	}
 }
 
 func (g *Game) Day() bool {
@@ -228,6 +303,11 @@ func (g *Game) RemovePlayer(id uuid.UUID) {
 
 	// let everyone know they lost a friend
 	g.Broadcast(message.PlayerList, g.PlayerList)
+
+	if len(g.PlayerList) == 0 {
+		g.State = NotRunning
+		g.Phase = 0
+	}
 }
 
 func (g *Game) Broadcast(title string, payload interface{}) {
@@ -241,29 +321,50 @@ func (g *Game) Broadcast(title string, payload interface{}) {
 func (g *Game) HandleJoins(joinChan chan *player.Player) {
 	for {
 		p := <-joinChan
-		log.Printf("%s: joining", p.UUID)
-		g.AddPlayer(p)
+		log.Printf("%s: joining", p.Identifier())
+		if err := g.AddPlayer(p); err != nil {
+			p.Message(message.CanNotJoin, "")
+		}
 	}
 }
 
 func (g *Game) HandlePlayerMessage() {
 	for {
 		activity := <-g.gameChan
+		from := g.Players[activity.From]
+		to := g.Players[activity.To]
+
 		switch activity.Type {
 		case chanmsg.Quit:
-			log.Printf("%s: quitting", activity.From)
-			g.RemovePlayer(activity.From)
+			log.Printf("%s: quitting", from.Identifier())
+			g.RemovePlayer(activity.From) // TODO
 			/*
 				case vote := <-g.VoteChan:
 					log.Println(vote)
 					//g.Vote(vote)
 			*/
 		case chanmsg.PlayerList:
-			log.Printf("%s: requesting player list", activity.From)
-			g.Players[activity.From].Message(message.PlayerList, g.PlayerList)
+			log.Printf("%s: requesting player list", from.Identifier())
+			from.Message(message.PlayerList, g.PlayerList)
+
+		case chanmsg.Tally:
+			log.Printf("%s: requesting tally", from.Identifier())
+			from.Message(message.Tally, tally.Short(g.Tally))
+
 		case chanmsg.Vote:
-			log.Printf("%s: voting for %s", activity.From, activity.To)
-			g.Vote(g.Players[activity.From], activity.To)
+			log.Printf("%s: voting for %s", from.Identifier(), g.Players[activity.To].Identifier())
+			if err := g.Vote(g.Players[activity.From], activity.To); err != nil {
+
+			}
+
+		case chanmsg.NightAction:
+			log.Printf("%s: night action submitted", from.Identifier())
+			fp := &FingerPoint{
+				From: from,
+				To:   to,
+			}
+			g.QueueNightAction(fp)
 		}
+
 	}
 }

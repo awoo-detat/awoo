@@ -6,6 +6,20 @@ const (
 	Neutral = iota // won't be used during the Hackathon
 )
 
+const (
+	ViewForMax = 1 << iota
+	NightKill
+	ViewForSeer
+	ViewForAux
+)
+
+const (
+	RandomMaxClear = 1 << iota
+	MaxList
+	RandomSeerClear
+	RandomAuxClear
+)
+
 type Role struct {
 	Name           string `json:"name"`
 	Description    string `json:"description"`
@@ -14,7 +28,8 @@ type Role struct {
 	VoteMultiplier int    `json:"-"`
 	Health         int    `json:"-"`
 	Alive          bool   `json:"alive"`
-	NightAction    bool   `json:"night_action"`
+	NightAction    int    `json:"night_action"`
+	StartAction    int    `json:"-"`
 }
 
 // Kill attempts to kill the player. If they had more than 1 health (ie

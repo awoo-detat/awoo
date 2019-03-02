@@ -5,10 +5,17 @@ import (
 	"log"
 )
 
+const (
+	TimeDay   = "day"
+	TimeNight = "night"
+)
+
 type ClientMessage struct {
 	JoinName       string `json:"joinWithName"`
 	PollPlayerList bool   `json:"pollPlayerList"`
+	PollTally      bool   `json:"pollTally"`
 	Vote           string `json:"voteFor"`
+	Time           string `json:"time"`
 }
 
 func Decode(raw []byte) *ClientMessage {

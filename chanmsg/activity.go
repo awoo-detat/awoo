@@ -5,12 +5,14 @@ import (
 )
 
 const (
-	Join       = iota
-	SetName    = iota
-	SetRoleset = iota
-	PlayerList = iota
-	Vote       = iota
-	Quit       = iota
+	Join = iota
+	SetName
+	SetRoleset
+	PlayerList
+	Vote
+	Quit
+	Tally
+	NightAction
 )
 
 type Activity struct {
