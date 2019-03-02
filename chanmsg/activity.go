@@ -15,12 +15,12 @@ const (
 
 type Activity struct {
 	Type int
-	From *uuid.UUID
-	To   *uuid.UUID
+	From uuid.UUID
+	To   uuid.UUID
 	//Roleset
 }
 
-func New(Type int, From *uuid.UUID) *Activity {
+func New(Type int, From uuid.UUID) *Activity {
 	return &Activity{
 		Type: Type,
 		From: From,

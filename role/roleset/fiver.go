@@ -9,7 +9,7 @@ func Fiver() *Roleset {
 		Name:        "Vanilla Fiver",
 		Description: "Four villagers. One wolf. Two days to find them.",
 		Roles: []*role.Role{
-			role.Villager(),
+			role.Werewolf(),
 			role.Villager(),
 			role.Villager(),
 			role.Villager(),

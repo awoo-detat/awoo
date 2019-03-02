@@ -17,6 +17,8 @@ type Role struct {
 	NightAction    bool   `json:"night_action"`
 }
 
+// Kill attempts to kill the player. If they had more than 1 health (ie
+// were "tough") then they will remain alive.
 func (r *Role) Kill() bool {
 	// maybe this should error if you try to kill a dead person?
 	r.Health--

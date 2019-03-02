@@ -8,6 +8,7 @@ import (
 type ClientMessage struct {
 	JoinName       string `json:"joinWithName"`
 	PollPlayerList bool   `json:"pollPlayerList"`
+	Vote           string `json:"voteFor"`
 }
 
 func Decode(raw []byte) *ClientMessage {

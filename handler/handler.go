@@ -39,8 +39,8 @@ func (h *Handler) Connect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	player := player.New(c, h.joinChan)
-	go player.Play()
+	p := player.New(c, h.joinChan)
+	go p.Play()
 }
 
 // Awoo's only function is to amuse its authors.

@@ -14,6 +14,10 @@ const (
 	Leader     = "leader"
 	PleaseWait = "pleasewait" // they're in the lobby
 	CanNotJoin = "cannotjoin"
+	Tally      = "tally"
+	Targeted   = "targeted"
+	Victory    = "victory"
+	Error      = "error"
 )
 
 type Message struct {
