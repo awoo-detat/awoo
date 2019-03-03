@@ -151,6 +151,7 @@ func (p *Player) Play() {
 func (p *Player) Reconnect(c Communicator) {
 	log.Printf("%s: reconnecting", p.Identifier())
 	p.socket = c
+	p.Message(message.PleaseWait, p)
 	go p.Play()
 }
 
