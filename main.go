@@ -13,7 +13,6 @@ func main() {
 	http.HandleFunc("/awoo", handler.Connect)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		log.Print("servin index?")
 		http.ServeFile(w, r, "index.html")
 	})
 

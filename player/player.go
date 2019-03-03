@@ -49,6 +49,7 @@ func New(socket Communicator, joinChan chan *Player) *Player {
 }
 
 func (p *Player) Identifier() string {
+	log.Printf("getting id for %+v", p)
 	if p.Name != "" {
 		return p.Name
 	}
@@ -100,11 +101,13 @@ func (p *Player) Play() {
 	for {
 		messageType, content, err := p.socket.ReadMessage()
 		if err != nil {
-			if websocket.IsCloseError(err, websocket.CloseGoingAway) {
+			if websocket.IsCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				p.Quit()
 				break
 			}
 			log.Printf("websocket error: %s", err)
+			p.Quit()
+			break
 		}
 
 		if messageType == websocket.BinaryMessage {

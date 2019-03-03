@@ -342,12 +342,7 @@ func (g *Game) HandlePlayerMessage() {
 		switch activity.Type {
 		case chanmsg.Quit:
 			log.Printf("%s: quitting", from.Identifier())
-			g.RemovePlayer(activity.From) // TODO
-			/*
-				case vote := <-g.VoteChan:
-					log.Println(vote)
-					//g.Vote(vote)
-			*/
+			g.RemovePlayer(activity.From)
 		case chanmsg.PlayerList:
 			log.Printf("%s: requesting player list", from.Identifier())
 			from.Message(message.PlayerList, g.PlayerList)
