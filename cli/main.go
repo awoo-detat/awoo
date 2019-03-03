@@ -5,10 +5,10 @@ import (
 	"time"
 	//"fmt"
 
-	"stash.corp.synacor.com/hack/werewolf/cli/communicator"
-	"stash.corp.synacor.com/hack/werewolf/game"
-	"stash.corp.synacor.com/hack/werewolf/player"
-	"stash.corp.synacor.com/hack/werewolf/role/roleset"
+	"github.com/Sigafoos/awoo/cli/communicator"
+	"github.com/Sigafoos/awoo/game"
+	"github.com/Sigafoos/awoo/player"
+	"github.com/Sigafoos/awoo/role/roleset"
 )
 
 func main() {

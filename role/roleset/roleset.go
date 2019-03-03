@@ -1,7 +1,7 @@
 package roleset
 
 import (
-	"stash.corp.synacor.com/hack/werewolf/role"
+	"github.com/Sigafoos/awoo/role"
 )
 
 type Roleset struct {

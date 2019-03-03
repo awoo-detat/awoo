@@ -5,8 +5,8 @@ import (
 	"log"
 	"strings"
 
-	"stash.corp.synacor.com/hack/werewolf/player"
-	"stash.corp.synacor.com/hack/werewolf/role"
+	"github.com/Sigafoos/awoo/player"
+	"github.com/Sigafoos/awoo/role"
 )
 
 type ActionResult struct {

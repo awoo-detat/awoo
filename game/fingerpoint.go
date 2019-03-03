@@ -1,7 +1,7 @@
 package game
 
 import (
-	"stash.corp.synacor.com/hack/werewolf/player"
+	"github.com/Sigafoos/awoo/player"
 )
 
 type FingerPoint struct {

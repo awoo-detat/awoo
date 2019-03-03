@@ -4,9 +4,9 @@ import (
 	//"fmt"
 	"log"
 
-	"stash.corp.synacor.com/hack/werewolf/chanmsg"
-	"stash.corp.synacor.com/hack/werewolf/message"
-	"stash.corp.synacor.com/hack/werewolf/role"
+	"github.com/Sigafoos/awoo/chanmsg"
+	"github.com/Sigafoos/awoo/message"
+	"github.com/Sigafoos/awoo/role"
 
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/websocket"

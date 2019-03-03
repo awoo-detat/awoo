@@ -6,12 +6,12 @@ import (
 	"math/rand"
 	"time"
 
-	"stash.corp.synacor.com/hack/werewolf/chanmsg"
-	"stash.corp.synacor.com/hack/werewolf/message"
-	"stash.corp.synacor.com/hack/werewolf/player"
-	"stash.corp.synacor.com/hack/werewolf/role"
-	"stash.corp.synacor.com/hack/werewolf/role/roleset"
-	"stash.corp.synacor.com/hack/werewolf/tally"
+	"github.com/Sigafoos/awoo/chanmsg"
+	"github.com/Sigafoos/awoo/message"
+	"github.com/Sigafoos/awoo/player"
+	"github.com/Sigafoos/awoo/role"
+	"github.com/Sigafoos/awoo/role/roleset"
+	"github.com/Sigafoos/awoo/tally"
 
 	"github.com/gofrs/uuid"
 )

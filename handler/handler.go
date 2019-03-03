@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"stash.corp.synacor.com/hack/werewolf/game"
-	"stash.corp.synacor.com/hack/werewolf/player"
+	"github.com/Sigafoos/awoo/game"
+	"github.com/Sigafoos/awoo/player"
 
 	"github.com/gorilla/websocket"
 )

@@ -1,7 +1,7 @@
 package tally
 
 import (
-	"stash.corp.synacor.com/hack/werewolf/player"
+	"github.com/Sigafoos/awoo/player"
 )
 
 type ShortTally struct {
