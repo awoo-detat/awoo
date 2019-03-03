@@ -69,10 +69,6 @@ func (g *Game) AddPlayer(p *player.Player) error {
 	if len(g.Players) == 0 {
 		log.Printf("setting leader: %s", p.Identifier())
 		p.Leader = true
-
-		// TODO
-		//g.SetRoleset(roleset.Fiver())
-		//g.SetRoleset(roleset.Debug())
 	}
 	p.SetChan(g.gameChan)
 
@@ -190,7 +186,6 @@ func (g *Game) SetRoleset(r *roleset.Roleset) error {
 	}
 
 	g.Roleset = r
-	log.Printf("set roleset to %s", g.Roleset.Name)
 	g.Broadcast(message.Roleset, g.Roleset)
 
 	if g.ShouldStart() {
@@ -326,7 +321,6 @@ func (g *Game) Broadcast(title string, payload interface{}) {
 func (g *Game) HandleJoins(joinChan chan *player.Player) {
 	for {
 		p := <-joinChan
-		log.Printf("%s: joining", p.Identifier())
 		if err := g.AddPlayer(p); err != nil {
 			p.Message(message.CanNotJoin, "")
 		}

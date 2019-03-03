@@ -1,7 +1,6 @@
 package player
 
 import (
-	//"fmt"
 	"log"
 
 	"github.com/Sigafoos/awoo/chanmsg"
@@ -49,7 +48,6 @@ func New(socket Communicator, joinChan chan *Player) *Player {
 }
 
 func (p *Player) Identifier() string {
-	log.Printf("getting id for %+v", p)
 	if p.Name != "" {
 		return p.Name
 	}
@@ -98,15 +96,15 @@ func (p *Player) NightAction(to uuid.UUID) {
 // Play is the loop that runs for a websocket to communicate between the
 // client and server. If websockets are not being used, this will not trigger.
 func (p *Player) Play() {
+	defer p.socket.Close()
 	for {
 		messageType, content, err := p.socket.ReadMessage()
 		if err != nil {
 			if websocket.IsCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				p.Quit()
+				log.Printf("%s: closing connection", p.Identifier())
 				break
 			}
-			log.Printf("websocket error: %s", err)
-			p.Quit()
+			log.Printf("%s: websocket error (%s), closing", p.Identifier(), err)
 			break
 		}
 
@@ -148,6 +146,12 @@ func (p *Player) Play() {
 			log.Printf("unknown request from %s: %s", p.Identifier(), content)
 		}
 	}
+}
+
+func (p *Player) Reconnect(c Communicator) {
+	log.Printf("%s: reconnecting", p.Identifier())
+	p.socket = c
+	go p.Play()
 }
 
 func (p *Player) Quit() {
