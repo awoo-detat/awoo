@@ -3,9 +3,9 @@ package player
 import (
 	"log"
 
-	"github.com/Sigafoos/awoo/chanmsg"
-	"github.com/Sigafoos/awoo/message"
-	"github.com/Sigafoos/awoo/role"
+	"github.com/awoo-detat/awoo/chanmsg"
+	"github.com/awoo-detat/awoo/message"
+	"github.com/awoo-detat/awoo/role"
 
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/websocket"

@@ -6,12 +6,12 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/Sigafoos/awoo/chanmsg"
-	"github.com/Sigafoos/awoo/message"
-	"github.com/Sigafoos/awoo/player"
-	"github.com/Sigafoos/awoo/role"
-	"github.com/Sigafoos/awoo/role/roleset"
-	"github.com/Sigafoos/awoo/tally"
+	"github.com/awoo-detat/awoo/chanmsg"
+	"github.com/awoo-detat/awoo/message"
+	"github.com/awoo-detat/awoo/player"
+	"github.com/awoo-detat/awoo/role"
+	"github.com/awoo-detat/awoo/role/roleset"
+	"github.com/awoo-detat/awoo/tally"
 
 	"github.com/gofrs/uuid"
 )

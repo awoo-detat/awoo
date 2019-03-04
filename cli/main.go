@@ -5,10 +5,10 @@ import (
 	"time"
 	//"fmt"
 
-	"github.com/Sigafoos/awoo/cli/communicator"
-	"github.com/Sigafoos/awoo/game"
-	"github.com/Sigafoos/awoo/player"
-	"github.com/Sigafoos/awoo/role/roleset"
+	"github.com/awoo-detat/awoo/cli/communicator"
+	"github.com/awoo-detat/awoo/game"
+	"github.com/awoo-detat/awoo/player"
+	"github.com/awoo-detat/awoo/role/roleset"
 )
 
 func main() {

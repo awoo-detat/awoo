@@ -1,7 +1,7 @@
 package tally
 
 import (
-	"github.com/Sigafoos/awoo/player"
+	"github.com/awoo-detat/awoo/player"
 )
 
 type ShortTally struct {

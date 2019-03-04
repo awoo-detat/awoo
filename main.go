@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/Sigafoos/awoo/handler"
+	"github.com/awoo-detat/awoo/handler"
 )
 
 func main() {

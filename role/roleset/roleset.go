@@ -1,7 +1,7 @@
 package roleset
 
 import (
-	"github.com/Sigafoos/awoo/role"
+	"github.com/awoo-detat/awoo/role"
 )
 
 type Roleset struct {

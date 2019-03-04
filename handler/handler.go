@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Sigafoos/awoo/game"
-	"github.com/Sigafoos/awoo/player"
+	"github.com/awoo-detat/awoo/game"
+	"github.com/awoo-detat/awoo/player"
 
 	"github.com/gorilla/websocket"
 )

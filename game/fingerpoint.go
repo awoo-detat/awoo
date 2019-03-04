@@ -1,7 +1,7 @@
 package game
 
 import (
-	"github.com/Sigafoos/awoo/player"
+	"github.com/awoo-detat/awoo/player"
 )
 
 type FingerPoint struct {

@@ -5,8 +5,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Sigafoos/awoo/player"
-	"github.com/Sigafoos/awoo/role"
+	"github.com/awoo-detat/awoo/player"
+	"github.com/awoo-detat/awoo/role"
 )
 
 type ActionResult struct {
