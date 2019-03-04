@@ -45,11 +45,20 @@ func (h *Handler) Connect(w http.ResponseWriter, r *http.Request) {
 
 	// handle reconnects
 	ip := h.ipFromRequest(r)
-	if p, exists := h.ips[ip]; exists {
+	if p, exists := h.ips[ip]; exists && p.Name != "" {
 		p.Reconnect(c)
 	} else {
 		p := player.New(c, h.joinChan)
-		h.ips[ip] = p
+		query := r.URL.Query()
+		if _, set := query["noreconnect"]; !set {
+			h.ips[ip] = p
+		} else {
+			// If the IP is in the map it could still be "new", as in the player
+			// doesn't have a name set and never joined the game. In that case,
+			// treat them like a completely new user and don't save the IP.
+			log.Printf("%s: not saving IP", p.Identifier())
+			delete(h.ips, ip)
+		}
 		go p.Play()
 	}
 }
