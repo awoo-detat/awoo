@@ -227,7 +227,7 @@ func (g *Game) EndDay(ousted *player.Player) {
 func (g *Game) AliveMaxEvils() []string {
 	var maxes []string
 	for _, p := range g.PlayerList {
-		if p.Role.Parity < 0 {
+		if p.Role.IsMaxEvil() {
 			maxes = append(maxes, p.Identifier())
 		}
 	}

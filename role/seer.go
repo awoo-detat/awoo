@@ -9,7 +9,7 @@ func Seer() *Role {
 		Health:         1,
 		Parity:         1,
 		Alive:          true,
-		NightAction:    ViewForMax,
-		StartAction:    RandomMaxClear,
+		Actions:        ViewForMax | RandomN0Clear,
+		Attributes:     seer,
 	}
 }
