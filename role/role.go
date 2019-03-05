@@ -18,12 +18,12 @@ const (
 type Action int
 
 const (
-	ViewForMax Action = 1 << iota
-	NightKill
-	ViewForSeer
-	ViewForAux
-	RandomN0Clear
-	ToldMaxes
+	viewForMax Action = 1 << iota
+	nightKill
+	viewForSeer
+	viewForAux
+	randomN0Clear
+	knowsMaxes
 )
 
 type Role struct {
@@ -78,6 +78,30 @@ func (r *Role) ViewForSeer() bool {
 		return !r.IsSeer()
 	}
 	return r.IsSeer()
+}
+
+func (r *Role) ViewsForMax() bool {
+	return r.Actions&viewForMax > 0
+}
+
+func (r *Role) HasNightKill() bool {
+	return r.Actions&nightKill > 0
+}
+
+func (r *Role) ViewsForSeer() bool {
+	return r.Actions&viewForSeer > 0
+}
+
+func (r *Role) ViewsForAux() bool {
+	return r.Actions&viewForAux > 0
+}
+
+func (r *Role) HasRandomN0Clear() bool {
+	return r.Actions&randomN0Clear > 0
+}
+
+func (r *Role) KnowsMaxes() bool {
+	return r.Actions&knowsMaxes > 0
 }
 
 // Kill attempts to kill the player. If they had more than 1 health (ie

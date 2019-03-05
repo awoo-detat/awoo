@@ -9,7 +9,7 @@ func Sorcerer() *Role {
 		Health:         1,
 		Parity:         1,
 		Alive:          true,
-		Actions:        RandomN0Clear | ViewForSeer,
+		Actions:        randomN0Clear | viewForSeer,
 		Attributes:     auxEvil,
 	}
 }

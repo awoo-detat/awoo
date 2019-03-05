@@ -10,6 +10,6 @@ func Cultist() *Role {
 		Parity:         1,
 		Alive:          true,
 		Attributes:     auxEvil,
-		Actions:        ToldMaxes,
+		Actions:        knowsMaxes,
 	}
 }
