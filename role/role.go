@@ -104,6 +104,11 @@ func (r *Role) KnowsMaxes() bool {
 	return r.Actions&knowsMaxes > 0
 }
 
+// SetTinker makes a role a tinker: all views will be the inverse of the truth
+func (r *Role) SetTinker() {
+	r.Attributes = r.Attributes | tinker
+}
+
 // Kill attempts to kill the player. If they had more than 1 health (ie
 // were "tough") then they will remain alive.
 func (r *Role) Kill() bool {
