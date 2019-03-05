@@ -13,6 +13,7 @@ const (
 	Quit
 	Tally
 	NightAction
+	ResetGame
 )
 
 type Activity struct {
