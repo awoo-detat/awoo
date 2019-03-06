@@ -23,16 +23,16 @@ var upgrader = websocket.Upgrader{
 
 type Handler struct {
 	game     *game.Game
-	joinChan chan *player.Player
-	ips      map[string]*player.Player
+	joinChan chan player.Player
+	ips      map[string]player.Player
 }
 
 func New() *Handler {
-	joinChan := make(chan *player.Player)
+	joinChan := make(chan player.Player)
 	return &Handler{
 		game:     game.New(joinChan),
 		joinChan: joinChan,
-		ips:      make(map[string]*player.Player),
+		ips:      make(map[string]player.Player),
 	}
 }
 
@@ -45,7 +45,7 @@ func (h *Handler) Connect(w http.ResponseWriter, r *http.Request) {
 
 	// handle reconnects
 	ip := h.ipFromRequest(r)
-	if p, exists := h.ips[ip]; exists && p.Name != "" {
+	if p, exists := h.ips[ip]; exists && p.InGame() {
 		p.Reconnect(c)
 	} else {
 		p := player.New(c, h.joinChan)

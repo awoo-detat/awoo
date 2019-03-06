@@ -21,40 +21,40 @@ const (
 
 type ActionResult struct {
 	PlayerMessage string
-	Killed        *player.Player
+	Killed        player.Player
 }
 
 func (g *Game) NightAction(fp *FingerPoint) *ActionResult {
 	result := &ActionResult{}
 
-	if fp.From.Role.HasNightKill() {
+	if fp.From.Role().HasNightKill() {
 		log.Printf("%s is killing %s", fp.From.Identifier(), fp.To.Identifier())
-		if !fp.To.Role.Kill() {
+		if !fp.To.Role().Kill() {
 			result.Killed = fp.To
 		}
 	}
 
-	if fp.From.Role.ViewsForMax() {
+	if fp.From.Role().ViewsForMax() {
 		log.Printf("%s (seer) is viewing %s", fp.From.Identifier(), fp.To.Identifier())
-		if fp.To.Role.ViewForMaxEvil() {
+		if fp.To.Role().ViewForMaxEvil() {
 			result.PlayerMessage = fmt.Sprintf("%s %s", fp.To.Identifier(), IsWerewolf)
 		} else {
 			result.PlayerMessage = fmt.Sprintf("%s %s", fp.To.Identifier(), IsNotWerewolf)
 		}
 	}
 
-	if fp.From.Role.ViewsForSeer() {
+	if fp.From.Role().ViewsForSeer() {
 		log.Printf("%s (sorcerer) is viewing %s", fp.From.Identifier(), fp.To.Identifier())
-		if fp.To.Role.ViewForSeer() {
+		if fp.To.Role().ViewForSeer() {
 			result.PlayerMessage = fmt.Sprintf("%s %s", fp.To.Identifier(), IsSeer)
 		} else {
 			result.PlayerMessage = fmt.Sprintf("%s %s", fp.To.Identifier(), IsNotSeer)
 		}
 	}
 
-	if fp.From.Role.ViewsForAux() {
+	if fp.From.Role().ViewsForAux() {
 		log.Printf("%s (aux seer) is viewing %s", fp.From.Identifier(), fp.To.Identifier())
-		if fp.To.Role.ViewForAuxEvil() {
+		if fp.To.Role().ViewForAuxEvil() {
 			result.PlayerMessage = fmt.Sprintf("%s %s", fp.To.Identifier(), IsAuxEvil)
 		} else {
 			result.PlayerMessage = fmt.Sprintf("%s %s", fp.To.Identifier(), IsNotAuxEvil)
@@ -64,37 +64,37 @@ func (g *Game) NightAction(fp *FingerPoint) *ActionResult {
 	return result
 }
 
-func (g *Game) StartAction(p *player.Player) *ActionResult {
+func (g *Game) StartAction(p player.Player) *ActionResult {
 	result := &ActionResult{}
 
-	if p.Role.KnowsMaxes() {
+	if p.Role().KnowsMaxes() {
 		maxes := g.AliveMaxEvils()
 		if len(maxes) > 1 {
 			result.PlayerMessage = fmt.Sprintf("%s %s", WolfListMultiple, strings.Join(maxes, ", "))
-		} else if len(maxes) == 1 && !p.Role.IsMaxEvil() {
+		} else if len(maxes) == 1 && !p.Role().IsMaxEvil() {
 			// don't send the Wolf a PM if they're the only one
 			result.PlayerMessage = fmt.Sprintf("%s %s", WolfListSingle, maxes[0])
 		}
 	}
-	if p.Role.HasRandomN0Clear() {
+	if p.Role().HasRandomN0Clear() {
 		var clear string
 		var role string
 		// this, uh, isn't really random. TODO?
 		for _, player := range g.Players {
 			var hit bool
 			switch {
-			case p.Role.ViewsForMax():
-				hit = player.Role.ViewForMaxEvil()
+			case p.Role().ViewsForMax():
+				hit = player.Role().ViewForMaxEvil()
 				role = IsNotWerewolf
-			case p.Role.ViewsForSeer():
-				hit = player.Role.ViewForSeer()
+			case p.Role().ViewsForSeer():
+				hit = player.Role().ViewForSeer()
 				role = IsNotSeer
-			case p.Role.ViewsForAux():
-				hit = player.Role.ViewForAuxEvil()
+			case p.Role().ViewsForAux():
+				hit = player.Role().ViewForAuxEvil()
 				role = IsNotAuxEvil
 			}
 
-			if p.UUID != player.UUID && !hit {
+			if p.UUID() != player.UUID() && !hit {
 				clear = player.Identifier()
 				break
 			}

@@ -5,6 +5,6 @@ import (
 )
 
 type FingerPoint struct {
-	From *player.Player
-	To *player.Player
+	From player.Player
+	To   player.Player
 }

@@ -18,9 +18,9 @@ import (
 // ActionTestSuite is a suite of unit tests for the Seer role.
 type ActionTestSuite struct {
 	suite.Suite
-	from    *player.Player
-	to      *player.Player
-	player3 *player.Player
+	from    player.Player
+	to      player.Player
+	player3 player.Player
 	game    *Game
 }
 
@@ -35,13 +35,13 @@ func (suite *ActionTestSuite) SetupTest() {
 	devNull := &communicator.Communicator{
 		Logger: log.New(ioutil.Discard, "", 0),
 	}
-	c := make(chan *player.Player)
+	c := make(chan player.Player)
 	suite.from = player.New(devNull, c)
-	suite.from.Name = FromName
+	suite.from.SetName(FromName)
 	suite.to = player.New(devNull, c)
-	suite.to.Name = ToName
+	suite.to.SetName(ToName)
 	suite.player3 = player.New(devNull, c)
-	suite.player3.Name = Player3Name
+	suite.player3.SetName(Player3Name)
 	suite.game = New(c)
 
 	log.SetFlags(0)
@@ -50,8 +50,8 @@ func (suite *ActionTestSuite) SetupTest() {
 
 // TestNoNightAction ensures that a role with no night actions will have nothing run.
 func (suite *ActionTestSuite) TestNoNightAction() {
-	suite.from.Role = role.Cultist()
-	suite.to.Role = role.Werewolf()
+	suite.from.SetRole(role.Cultist())
+	suite.to.SetRole(role.Werewolf())
 
 	result := suite.game.NightAction(&FingerPoint{suite.from, suite.to})
 	assert.Equal(suite.T(), "", result.PlayerMessage)
@@ -60,68 +60,68 @@ func (suite *ActionTestSuite) TestNoNightAction() {
 
 // TestSorcererPositiveView tests that a sorcerer viewing a seer will be a positive hit.
 func (suite *ActionTestSuite) TestSorcererPositiveView() {
-	suite.from.Role = role.Sorcerer()
-	suite.to.Role = role.Seer()
+	suite.from.SetRole(role.Sorcerer())
+	suite.to.SetRole(role.Seer())
 
 	result := suite.game.NightAction(&FingerPoint{suite.from, suite.to})
-	assert.Equal(suite.T(), fmt.Sprintf("%s %s", suite.to.Name, IsSeer), result.PlayerMessage)
+	assert.Equal(suite.T(), fmt.Sprintf("%s %s", suite.to.Identifier(), IsSeer), result.PlayerMessage)
 	assert.Nil(suite.T(), result.Killed)
 }
 
 // TestSorcererNegativeView tests that a sorcerer viewing a non-seer will be a negative hit.
 func (suite *ActionTestSuite) TestSorcererNegativeView() {
-	suite.from.Role = role.Sorcerer()
-	suite.to.Role = role.Cultist()
+	suite.from.SetRole(role.Sorcerer())
+	suite.to.SetRole(role.Cultist())
 
 	result := suite.game.NightAction(&FingerPoint{suite.from, suite.to})
-	assert.Equal(suite.T(), fmt.Sprintf("%s %s", suite.to.Name, IsNotSeer), result.PlayerMessage)
+	assert.Equal(suite.T(), fmt.Sprintf("%s %s", suite.to.Identifier(), IsNotSeer), result.PlayerMessage)
 	assert.Nil(suite.T(), result.Killed)
 }
 
 // TestSeerPositiveView tests that a seer viewing a wolf will be a positive hit.
 func (suite *ActionTestSuite) TestSeerPositiveView() {
-	suite.from.Role = role.Seer()
-	suite.to.Role = role.Werewolf()
+	suite.from.SetRole(role.Seer())
+	suite.to.SetRole(role.Werewolf())
 
 	result := suite.game.NightAction(&FingerPoint{suite.from, suite.to})
-	assert.Equal(suite.T(), fmt.Sprintf("%s %s", suite.to.Name, IsWerewolf), result.PlayerMessage)
+	assert.Equal(suite.T(), fmt.Sprintf("%s %s", suite.to.Identifier(), IsWerewolf), result.PlayerMessage)
 	assert.Nil(suite.T(), result.Killed)
 }
 
 // TestSeerNegativeView tests that a seer viewing a non-wolf will be a negative hit.
 func (suite *ActionTestSuite) TestSeerNegativeView() {
-	suite.from.Role = role.Seer()
-	suite.to.Role = role.Cultist()
+	suite.from.SetRole(role.Seer())
+	suite.to.SetRole(role.Cultist())
 
 	result := suite.game.NightAction(&FingerPoint{suite.from, suite.to})
-	assert.Equal(suite.T(), fmt.Sprintf("%s %s", suite.to.Name, IsNotWerewolf), result.PlayerMessage)
+	assert.Equal(suite.T(), fmt.Sprintf("%s %s", suite.to.Identifier(), IsNotWerewolf), result.PlayerMessage)
 	assert.Nil(suite.T(), result.Killed)
 }
 
 // TestAuxSeerPositiveView tests that an aux seer viewing an auxwill be a positive hit.
 func (suite *ActionTestSuite) TestAuxSeerPositiveView() {
-	suite.from.Role = role.AuxSeer()
-	suite.to.Role = role.Cultist()
+	suite.from.SetRole(role.AuxSeer())
+	suite.to.SetRole(role.Cultist())
 
 	result := suite.game.NightAction(&FingerPoint{suite.from, suite.to})
-	assert.Equal(suite.T(), fmt.Sprintf("%s %s", suite.to.Name, IsAuxEvil), result.PlayerMessage)
+	assert.Equal(suite.T(), fmt.Sprintf("%s %s", suite.to.Identifier(), IsAuxEvil), result.PlayerMessage)
 	assert.Nil(suite.T(), result.Killed)
 }
 
 // TestAuxSeerNegativeView tests that an aux seer viewing a non-aux will be a negative hit.
 func (suite *ActionTestSuite) TestAuxSeerNegativeView() {
-	suite.from.Role = role.AuxSeer()
-	suite.to.Role = role.Werewolf()
+	suite.from.SetRole(role.AuxSeer())
+	suite.to.SetRole(role.Werewolf())
 
 	result := suite.game.NightAction(&FingerPoint{suite.from, suite.to})
-	assert.Equal(suite.T(), fmt.Sprintf("%s %s", suite.to.Name, IsNotAuxEvil), result.PlayerMessage)
+	assert.Equal(suite.T(), fmt.Sprintf("%s %s", suite.to.Identifier(), IsNotAuxEvil), result.PlayerMessage)
 	assert.Nil(suite.T(), result.Killed)
 }
 
 // TestNightKill ensures that a wolf eating someone will be reported correctly.
 func (suite *ActionTestSuite) TestNightKill() {
-	suite.from.Role = role.Werewolf()
-	suite.to.Role = role.Villager()
+	suite.from.SetRole(role.Werewolf())
+	suite.to.SetRole(role.Villager())
 
 	result := suite.game.NightAction(&FingerPoint{suite.from, suite.to})
 	assert.Equal(suite.T(), "", result.PlayerMessage)
@@ -131,9 +131,9 @@ func (suite *ActionTestSuite) TestNightKill() {
 // TestToughNightKill ensures that a wolf eating someone who doesn't die
 // won't reveal the target
 func (suite *ActionTestSuite) TestToughNightKill() {
-	suite.from.Role = role.Werewolf()
-	suite.to.Role = role.Villager()
-	suite.to.Role.Health = 2
+	suite.from.SetRole(role.Werewolf())
+	suite.to.SetRole(role.Villager())
+	suite.to.Role().Health = 2
 
 	result := suite.game.NightAction(&FingerPoint{suite.from, suite.to})
 	assert.Equal(suite.T(), "", result.PlayerMessage)
@@ -142,9 +142,9 @@ func (suite *ActionTestSuite) TestToughNightKill() {
 
 // TestKnowsMaxes tests that a role that is told who the wolves are will be told.
 func (suite *ActionTestSuite) TestKnowsMaxes() {
-	suite.from.Role = role.Cultist()
-	suite.to.Role = role.Werewolf()
-	suite.player3.Role = role.Werewolf()
+	suite.from.SetRole(role.Cultist())
+	suite.to.SetRole(role.Werewolf())
+	suite.player3.SetRole(role.Werewolf())
 
 	suite.game.AddPlayer(suite.from)
 	suite.game.AddPlayer(suite.to)
@@ -158,19 +158,19 @@ func (suite *ActionTestSuite) TestKnowsMaxes() {
 
 // TestKnowsMax tests that a role that is told who the wolf is will be told.
 func (suite *ActionTestSuite) TestKnowsMax() {
-	suite.from.Role = role.Cultist()
-	suite.to.Role = role.Werewolf()
+	suite.from.SetRole(role.Cultist())
+	suite.to.SetRole(role.Werewolf())
 
 	suite.game.AddPlayer(suite.from)
 	suite.game.AddPlayer(suite.to)
 
 	result := suite.game.StartAction(suite.from)
-	assert.Equal(suite.T(), fmt.Sprintf("%s %s", WolfListSingle, suite.to.Name), result.PlayerMessage)
+	assert.Equal(suite.T(), fmt.Sprintf("%s %s", WolfListSingle, suite.to.Identifier()), result.PlayerMessage)
 }
 
 // TestKnowsMaxIsMax tests that a max evil won't be told they're the only one.
 func (suite *ActionTestSuite) TestKnowsMaxIsMax() {
-	suite.from.Role = role.Werewolf()
+	suite.from.SetRole(role.Werewolf())
 	suite.game.AddPlayer(suite.from)
 
 	result := suite.game.StartAction(suite.from)
@@ -179,8 +179,8 @@ func (suite *ActionTestSuite) TestKnowsMaxIsMax() {
 
 // TestSeerN0Clear tests that a seer's N0 clear functions properly.
 func (suite *ActionTestSuite) TestSeerN0Clear() {
-	suite.from.Role = role.Seer()
-	suite.to.Role = role.Werewolf()
+	suite.from.SetRole(role.Seer())
+	suite.to.SetRole(role.Werewolf())
 
 	suite.game.AddPlayer(suite.from)
 	suite.game.AddPlayer(suite.to)
@@ -190,7 +190,7 @@ func (suite *ActionTestSuite) TestSeerN0Clear() {
 	assert.Equal(suite.T(), "", result.PlayerMessage)
 
 	// but then adding a non-wolf provides them as the clear
-	suite.player3.Role = role.Villager()
+	suite.player3.SetRole(role.Villager())
 	suite.game.AddPlayer(suite.player3)
 	result = suite.game.StartAction(suite.from)
 	assert.True(suite.T(), strings.HasSuffix(result.PlayerMessage, IsNotWerewolf))
@@ -198,9 +198,9 @@ func (suite *ActionTestSuite) TestSeerN0Clear() {
 
 // TestSorcererN0Clear tests that a sorcerer's N0 clear functions properly.
 func (suite *ActionTestSuite) TestSorcererN0Clear() {
-	suite.from.Role = role.Sorcerer()
-	suite.to.Role = role.Seer()
-	suite.player3.Role = role.Villager()
+	suite.from.SetRole(role.Sorcerer())
+	suite.to.SetRole(role.Seer())
+	suite.player3.SetRole(role.Villager())
 
 	suite.game.AddPlayer(suite.from)
 	suite.game.AddPlayer(suite.to)
@@ -212,9 +212,9 @@ func (suite *ActionTestSuite) TestSorcererN0Clear() {
 
 // TestAuxSeerN0Clear tests that an aux seer's N0 clear functions properly.
 func (suite *ActionTestSuite) TestAuxSeerN0Clear() {
-	suite.from.Role = role.AuxSeer()
-	suite.to.Role = role.Cultist()
-	suite.player3.Role = role.Villager()
+	suite.from.SetRole(role.AuxSeer())
+	suite.to.SetRole(role.Cultist())
+	suite.player3.SetRole(role.Villager())
 
 	suite.game.AddPlayer(suite.from)
 	suite.game.AddPlayer(suite.to)
