@@ -12,8 +12,6 @@ import (
 	"github.com/awoo-detat/awoo/role"
 	"github.com/awoo-detat/awoo/role/roleset"
 	"github.com/awoo-detat/awoo/tally"
-
-	"github.com/gofrs/uuid"
 )
 
 const (
@@ -24,20 +22,20 @@ const (
 )
 
 type Game struct {
-	Players          map[uuid.UUID]player.Player `json:"-"`
-	PlayerList       []player.Player             `json:"players"`
-	Roleset          *roleset.Roleset            `json:"roleset"`
-	votes            map[player.Player]uuid.UUID `json:"-"`
-	Tally            []*tally.TallyItem          `json:"tally"`
-	State            int                         `json:"game_state"`
-	Phase            int                         `json:"phase"`
-	NightActionQueue []*FingerPoint              `json:"-"`
-	gameChan         chan *chanmsg.Activity      `json:"-"`
+	Players          map[string]player.Player `json:"-"`
+	PlayerList       []player.Player          `json:"players"`
+	Roleset          *roleset.Roleset         `json:"roleset"`
+	votes            map[player.Player]string `json:"-"`
+	Tally            []*tally.TallyItem       `json:"tally"`
+	State            int                      `json:"game_state"`
+	Phase            int                      `json:"phase"`
+	NightActionQueue []*FingerPoint           `json:"-"`
+	gameChan         chan *chanmsg.Activity   `json:"-"`
 }
 
 func New(joinChan chan player.Player) *Game {
 	game := &Game{
-		Players:  make(map[uuid.UUID]player.Player),
+		Players:  make(map[string]player.Player),
 		State:    NotRunning,
 		Phase:    0,
 		gameChan: make(chan *chanmsg.Activity),
@@ -122,7 +120,7 @@ func (g *Game) NextPhase() {
 	g.UpdatePlayerList()
 	maxes := g.AliveMaxEvils()
 	g.NightActionQueue = []*FingerPoint{}
-	g.votes = make(map[player.Player]uuid.UUID)
+	g.votes = make(map[player.Player]string)
 	g.RebuildTally()
 
 	log.Printf("alive maxes: %v", maxes)
@@ -194,7 +192,7 @@ func (g *Game) SetRoleset(r *roleset.Roleset) error {
 	return nil
 }
 
-func (g *Game) Vote(from player.Player, to uuid.UUID) error {
+func (g *Game) Vote(from player.Player, to string) error {
 	if !g.Day() {
 		err := fmt.Errorf("vote failed; not day")
 		log.Println(err)
@@ -297,7 +295,7 @@ func (g *Game) Day() bool {
 	return g.Phase%2 == 1
 }
 
-func (g *Game) RemovePlayer(id uuid.UUID) {
+func (g *Game) RemovePlayer(id string) {
 	delete(g.Players, id)
 	g.UpdatePlayerList()
 

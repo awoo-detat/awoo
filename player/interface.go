@@ -3,18 +3,16 @@ package player
 import (
 	"github.com/awoo-detat/awoo/chanmsg"
 	"github.com/awoo-detat/awoo/role"
-
-	"github.com/gofrs/uuid"
 )
 
 type Player interface {
-	ID() uuid.UUID
+	ID() string
 	Identifier() string
 	Reveal() *Revealed
 	Message(title string, payload interface{}) error
 	SetChan(c chan *chanmsg.Activity)
-	Vote(to uuid.UUID)
-	NightAction(to uuid.UUID)
+	Vote(to string)
+	NightAction(to string)
 	Play()
 	InGame() bool
 	LeaveGame()

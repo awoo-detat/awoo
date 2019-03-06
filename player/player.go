@@ -41,21 +41,21 @@ func New(socket Communicator, joinChan chan Player) *GamePlayer {
 		joinChan: joinChan,
 	}
 
-	if err := p.Message(message.Awoo, p.UUID.String()); err != nil {
+	if err := p.Message(message.Awoo, p.ID()); err != nil {
 		log.Print(err)
 	}
 	return p
 }
 
-func (p *GamePlayer) ID() uuid.UUID {
-	return p.UUID
+func (p *GamePlayer) ID() string {
+	return p.UUID.String()
 }
 
 func (p *GamePlayer) Identifier() string {
 	if p.Name != "" {
 		return p.Name
 	}
-	return p.UUID.String()
+	return p.ID()
 }
 
 func (p *GamePlayer) Reveal() *Revealed {
@@ -85,14 +85,14 @@ func (p *GamePlayer) SetChan(c chan *chanmsg.Activity) {
 	p.gameChan = c
 }
 
-func (p *GamePlayer) Vote(to uuid.UUID) {
-	vote := chanmsg.New(chanmsg.Vote, p.UUID)
+func (p *GamePlayer) Vote(to string) {
+	vote := chanmsg.New(chanmsg.Vote, p.ID())
 	vote.To = to
 	p.gameChan <- vote
 }
 
-func (p *GamePlayer) NightAction(to uuid.UUID) {
-	action := chanmsg.New(chanmsg.NightAction, p.UUID)
+func (p *GamePlayer) NightAction(to string) {
+	action := chanmsg.New(chanmsg.NightAction, p.ID())
 	action.To = to
 	p.gameChan <- action
 }
@@ -126,23 +126,18 @@ func (p *GamePlayer) Play() {
 			// TODO make that a separate request
 			p.joinChan <- p
 		} else if m.PollPlayerList {
-			p.gameChan <- chanmsg.New(chanmsg.PlayerList, p.UUID)
+			p.gameChan <- chanmsg.New(chanmsg.PlayerList, p.ID())
 		} else if m.PollTally {
-			p.gameChan <- chanmsg.New(chanmsg.Tally, p.UUID)
+			p.gameChan <- chanmsg.New(chanmsg.Tally, p.ID())
 		} else if m.Roleset != "" {
-			activity := chanmsg.New(chanmsg.SetRoleset, p.UUID)
+			activity := chanmsg.New(chanmsg.SetRoleset, p.ID())
 			activity.Roleset = m.Roleset
 			p.gameChan <- activity
 		} else if m.Vote != "" {
-			to, err := uuid.FromString(m.Vote)
-			if err != nil {
-				p.Message(message.Error, err)
-				continue
-			}
 			if m.Time == message.TimeDay {
-				p.Vote(to)
+				p.Vote(m.Vote)
 			} else if m.Time == message.TimeNight {
-				p.NightAction(to)
+				p.NightAction(m.Vote)
 			} else {
 				p.Message(message.Error, "jcantwell what did you do it is neither day nor night; are we trapped in this eternal twilight together now?")
 			}
@@ -187,5 +182,5 @@ func (p *GamePlayer) Quit() {
 	if err := p.socket.Close(); err != nil {
 		log.Printf("error closing channel: %s", err)
 	}
-	p.gameChan <- chanmsg.New(chanmsg.Quit, p.UUID)
+	p.gameChan <- chanmsg.New(chanmsg.Quit, p.ID())
 }
