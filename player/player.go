@@ -12,9 +12,9 @@ import (
 )
 
 type GamePlayer struct {
-	uuid     uuid.UUID
-	Leader   bool   `json:"leader"`
-	Name     string `json:"name,omitempty"`
+	UUID     uuid.UUID `json:"uuid"`
+	Leader   bool      `json:"leader"`
+	Name     string    `json:"name,omitempty"`
 	role     *role.Role
 	socket   Communicator
 	joinChan chan Player
@@ -35,33 +35,33 @@ func New(socket Communicator, joinChan chan Player) *GamePlayer {
 	}
 
 	p := &GamePlayer{
-		uuid:     id,
+		UUID:     id,
 		socket:   socket,
 		role:     &role.Role{},
 		joinChan: joinChan,
 	}
 
-	if err := p.Message(message.Awoo, p.uuid.String()); err != nil {
+	if err := p.Message(message.Awoo, p.UUID.String()); err != nil {
 		log.Print(err)
 	}
 	return p
 }
 
-func (p *GamePlayer) UUID() uuid.UUID {
-	return p.uuid
+func (p *GamePlayer) ID() uuid.UUID {
+	return p.UUID
 }
 
 func (p *GamePlayer) Identifier() string {
 	if p.Name != "" {
 		return p.Name
 	}
-	return p.uuid.String()
+	return p.UUID.String()
 }
 
 func (p *GamePlayer) Reveal() *Revealed {
 	r := &Revealed{
 		Name: p.Name,
-		UUID: p.uuid,
+		UUID: p.UUID,
 	}
 	if p.Role().Alive {
 		r.Alive = true
@@ -86,13 +86,13 @@ func (p *GamePlayer) SetChan(c chan *chanmsg.Activity) {
 }
 
 func (p *GamePlayer) Vote(to uuid.UUID) {
-	vote := chanmsg.New(chanmsg.Vote, p.uuid)
+	vote := chanmsg.New(chanmsg.Vote, p.UUID)
 	vote.To = to
 	p.gameChan <- vote
 }
 
 func (p *GamePlayer) NightAction(to uuid.UUID) {
-	action := chanmsg.New(chanmsg.NightAction, p.uuid)
+	action := chanmsg.New(chanmsg.NightAction, p.UUID)
 	action.To = to
 	p.gameChan <- action
 }
@@ -126,11 +126,11 @@ func (p *GamePlayer) Play() {
 			// TODO make that a separate request
 			p.joinChan <- p
 		} else if m.PollPlayerList {
-			p.gameChan <- chanmsg.New(chanmsg.PlayerList, p.uuid)
+			p.gameChan <- chanmsg.New(chanmsg.PlayerList, p.UUID)
 		} else if m.PollTally {
-			p.gameChan <- chanmsg.New(chanmsg.Tally, p.uuid)
+			p.gameChan <- chanmsg.New(chanmsg.Tally, p.UUID)
 		} else if m.Roleset != "" {
-			activity := chanmsg.New(chanmsg.SetRoleset, p.uuid)
+			activity := chanmsg.New(chanmsg.SetRoleset, p.UUID)
 			activity.Roleset = m.Roleset
 			p.gameChan <- activity
 		} else if m.Vote != "" {
@@ -187,5 +187,5 @@ func (p *GamePlayer) Quit() {
 	if err := p.socket.Close(); err != nil {
 		log.Printf("error closing channel: %s", err)
 	}
-	p.gameChan <- chanmsg.New(chanmsg.Quit, p.uuid)
+	p.gameChan <- chanmsg.New(chanmsg.Quit, p.UUID)
 }

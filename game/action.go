@@ -94,7 +94,7 @@ func (g *Game) StartAction(p player.Player) *ActionResult {
 				role = IsNotAuxEvil
 			}
 
-			if p.UUID() != player.UUID() && !hit {
+			if p.ID() != player.ID() && !hit {
 				clear = player.Identifier()
 				break
 			}

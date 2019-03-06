@@ -8,7 +8,7 @@ import (
 )
 
 type Player interface {
-	UUID() uuid.UUID
+	ID() uuid.UUID
 	Identifier() string
 	Reveal() *Revealed
 	Message(title string, payload interface{}) error

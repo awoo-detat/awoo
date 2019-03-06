@@ -72,7 +72,7 @@ func (g *Game) AddPlayer(p player.Player) error {
 	}
 	p.SetChan(g.gameChan)
 
-	g.Players[p.UUID()] = p
+	g.Players[p.ID()] = p
 	g.UpdatePlayerList()
 
 	// let everyone know they have a new friend
@@ -104,8 +104,8 @@ func (g *Game) Start() error {
 	for k, v := range g.PlayerList {
 		r := g.Roleset.Roles[roleOrder[k]]
 		log.Printf("%s: %s", v.Identifier(), r.Name)
-		g.Players[v.UUID()].SetRole(r)
-		g.Players[v.UUID()].Message(message.Role, r)
+		g.Players[v.ID()].SetRole(r)
+		g.Players[v.ID()].Message(message.Role, r)
 	}
 
 	log.Printf("== starting game ==")
@@ -313,7 +313,7 @@ func (g *Game) RemovePlayer(id uuid.UUID) {
 func (g *Game) Broadcast(title string, payload interface{}) {
 	for _, p := range g.Players {
 		if err := p.Message(title, payload); err != nil {
-			log.Printf("%s: error messaging (%s)", p.UUID(), err)
+			log.Printf("%s: error messaging (%s)", p.ID(), err)
 		}
 	}
 }
