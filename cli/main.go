@@ -3,11 +3,10 @@ package main
 import (
 	"log"
 	"time"
-	//"fmt"
 
-	"github.com/awoo-detat/awoo/cli/communicator"
 	"github.com/awoo-detat/awoo/game"
 	"github.com/awoo-detat/awoo/player"
+	"github.com/awoo-detat/awoo/player/communicator"
 	"github.com/awoo-detat/awoo/role/roleset"
 )
 
