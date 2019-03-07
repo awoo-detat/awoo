@@ -43,24 +43,22 @@ func (h *Handler) Connect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	p := player.New(c, h.joinChan)
 	// handle reconnects
 	ip := h.ipFromRequest(r)
-	if p, exists := h.ips[ip]; exists && p.InGame() {
-		p.Reconnect(c)
-	} else {
-		p := player.New(c, h.joinChan)
-		query := r.URL.Query()
-		if _, set := query["noreconnect"]; !set {
-			h.ips[ip] = p
+	query := r.URL.Query()
+	if _, set := query["noreconnect"]; !set {
+		returning, exists := h.ips[ip]
+		if exists && returning.InGame() {
+			returning.Reconnect(c)
+			return
 		} else {
-			// If the IP is in the map it could still be "new", as in the player
-			// doesn't have a name set and never joined the game. In that case,
-			// treat them like a completely new user and don't save the IP.
-			log.Printf("%s: not saving IP", p.Identifier())
-			delete(h.ips, ip)
+			h.ips[ip] = p
 		}
-		go p.Play()
+	} else {
+		log.Printf("%s: not saving IP", p.Identifier())
 	}
+	go p.Play()
 }
 
 // Awoo's only function is to amuse its authors.
