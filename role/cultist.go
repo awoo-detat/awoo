@@ -9,6 +9,7 @@ func Cultist() *Role {
 		Health:         1,
 		Parity:         1,
 		Alive:          true,
-		StartAction:    MaxList,
+		Attributes:     auxEvil,
+		Actions:        knowsMaxes,
 	}
 }

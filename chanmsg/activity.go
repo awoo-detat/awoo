@@ -1,9 +1,5 @@
 package chanmsg
 
-import (
-	"github.com/gofrs/uuid"
-)
-
 const (
 	Join = iota
 	SetName
@@ -18,12 +14,12 @@ const (
 
 type Activity struct {
 	Type    int
-	From    uuid.UUID
-	To      uuid.UUID
+	From    string
+	To      string
 	Roleset string
 }
 
-func New(Type int, From uuid.UUID) *Activity {
+func New(Type int, From string) *Activity {
 	return &Activity{
 		Type: Type,
 		From: From,

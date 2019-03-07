@@ -11,13 +11,13 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type Player struct {
-	UUID     uuid.UUID  `json:"uuid"`
-	Leader   bool       `json:"leader"`
-	Name     string     `json:"name,omitempty"`
-	Role     *role.Role `json:"-"`
+type GamePlayer struct {
+	UUID     uuid.UUID `json:"uuid"`
+	Leader   bool      `json:"leader"`
+	Name     string    `json:"name,omitempty"`
+	role     *role.Role
 	socket   Communicator
-	joinChan chan *Player
+	joinChan chan Player
 	gameChan chan *chanmsg.Activity
 }
 
@@ -28,48 +28,52 @@ type Revealed struct {
 	Alive    bool      `json:"alive"`
 }
 
-func New(socket Communicator, joinChan chan *Player) *Player {
+func New(socket Communicator, joinChan chan Player) *GamePlayer {
 	id, err := uuid.NewV4()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	p := &Player{
+	p := &GamePlayer{
 		UUID:     id,
 		socket:   socket,
-		Role:     &role.Role{},
+		role:     &role.Role{},
 		joinChan: joinChan,
 	}
 
-	if err := p.Message(message.Awoo, p.UUID.String()); err != nil {
+	if err := p.Message(message.Awoo, p.ID()); err != nil {
 		log.Print(err)
 	}
 	return p
 }
 
-func (p *Player) Identifier() string {
-	if p.Name != "" {
-		return p.Name
-	}
+func (p *GamePlayer) ID() string {
 	return p.UUID.String()
 }
 
-func (p *Player) Reveal() *Revealed {
+func (p *GamePlayer) Identifier() string {
+	if p.Name != "" {
+		return p.Name
+	}
+	return p.ID()
+}
+
+func (p *GamePlayer) Reveal() *Revealed {
 	r := &Revealed{
 		Name: p.Name,
 		UUID: p.UUID,
 	}
-	if p.Role.Alive {
+	if p.Role().Alive {
 		r.Alive = true
 	} else {
-		r.RoleName = p.Role.Name
+		r.RoleName = p.Role().Name
 	}
 	return r
 }
 
 // Message wraps the error checking around encoding a message.Message,
 // and sends it on the websocket.
-func (p *Player) Message(title string, payload interface{}) error {
+func (p *GamePlayer) Message(title string, payload interface{}) error {
 	m, err := message.New(title, payload)
 	if err != nil {
 		return err
@@ -77,25 +81,25 @@ func (p *Player) Message(title string, payload interface{}) error {
 	return p.socket.WriteMessage(websocket.TextMessage, m)
 }
 
-func (p *Player) SetChan(c chan *chanmsg.Activity) {
+func (p *GamePlayer) SetChan(c chan *chanmsg.Activity) {
 	p.gameChan = c
 }
 
-func (p *Player) Vote(to uuid.UUID) {
-	vote := chanmsg.New(chanmsg.Vote, p.UUID)
+func (p *GamePlayer) Vote(to string) {
+	vote := chanmsg.New(chanmsg.Vote, p.ID())
 	vote.To = to
 	p.gameChan <- vote
 }
 
-func (p *Player) NightAction(to uuid.UUID) {
-	action := chanmsg.New(chanmsg.NightAction, p.UUID)
+func (p *GamePlayer) NightAction(to string) {
+	action := chanmsg.New(chanmsg.NightAction, p.ID())
 	action.To = to
 	p.gameChan <- action
 }
 
 // Play is the loop that runs for a websocket to communicate between the
 // client and server. If websockets are not being used, this will not trigger.
-func (p *Player) Play() {
+func (p *GamePlayer) Play() {
 	defer p.socket.Close()
 	for {
 		messageType, content, err := p.socket.ReadMessage()
@@ -122,26 +126,21 @@ func (p *Player) Play() {
 			// TODO make that a separate request
 			p.joinChan <- p
 		} else if m.PollPlayerList {
-			p.gameChan <- chanmsg.New(chanmsg.PlayerList, p.UUID)
+			p.gameChan <- chanmsg.New(chanmsg.PlayerList, p.ID())
 		} else if m.PollTally {
-			p.gameChan <- chanmsg.New(chanmsg.Tally, p.UUID)
+			p.gameChan <- chanmsg.New(chanmsg.Tally, p.ID())
 		} else if m.Roleset != "" {
-			activity := chanmsg.New(chanmsg.SetRoleset, p.UUID)
+			activity := chanmsg.New(chanmsg.SetRoleset, p.ID())
 			activity.Roleset = m.Roleset
 			p.gameChan <- activity
 		} else if m.Reset {
 			p.Leader = false
-			p.gameChan <- chanmsg.New(chanmsg.ResetGame, p.UUID)
+			p.gameChan <- chanmsg.New(chanmsg.ResetGame, p.ID())
 		} else if m.Vote != "" {
-			to, err := uuid.FromString(m.Vote)
-			if err != nil {
-				p.Message(message.Error, err)
-				continue
-			}
 			if m.Time == message.TimeDay {
-				p.Vote(to)
+				p.Vote(m.Vote)
 			} else if m.Time == message.TimeNight {
-				p.NightAction(to)
+				p.NightAction(m.Vote)
 			} else {
 				p.Message(message.Error, "jcantwell what did you do it is neither day nor night; are we trapped in this eternal twilight together now?")
 			}
@@ -151,16 +150,42 @@ func (p *Player) Play() {
 	}
 }
 
-func (p *Player) Reconnect(c Communicator) {
+func (p *GamePlayer) Reconnect(c Communicator) {
 	log.Printf("%s: reconnecting", p.Identifier())
 	p.socket = c
 	p.Message(message.PleaseWait, p)
 	go p.Play()
 }
 
-func (p *Player) Quit() {
+func (p *GamePlayer) Role() *role.Role {
+	return p.role
+}
+
+func (p *GamePlayer) SetLeader() {
+	p.Leader = true
+}
+
+func (p *GamePlayer) SetName(name string) {
+	p.Name = name
+}
+
+func (p *GamePlayer) SetRole(r *role.Role) {
+	p.role = r
+}
+
+func (p *GamePlayer) InGame() bool {
+	return p.gameChan != nil
+}
+
+func (p *GamePlayer) LeaveGame() {
+	log.Printf("%s: leaving game", p.Identifier())
+	p.gameChan = nil
+}
+
+func (p *GamePlayer) Quit() {
 	if err := p.socket.Close(); err != nil {
 		log.Printf("error closing channel: %s", err)
 	}
-	p.gameChan <- chanmsg.New(chanmsg.Quit, p.UUID)
+	p.gameChan <- chanmsg.New(chanmsg.Quit, p.ID())
+	p.LeaveGame()
 }

@@ -12,8 +12,6 @@ import (
 	"github.com/awoo-detat/awoo/role"
 	"github.com/awoo-detat/awoo/role/roleset"
 	"github.com/awoo-detat/awoo/tally"
-
-	"github.com/gofrs/uuid"
 )
 
 const (
@@ -24,20 +22,20 @@ const (
 )
 
 type Game struct {
-	Players          map[uuid.UUID]*player.Player `json:"-"`
-	PlayerList       []*player.Player             `json:"players"`
-	Roleset          *roleset.Roleset             `json:"roleset"`
-	votes            map[*player.Player]uuid.UUID `json:"-"`
-	Tally            []*tally.TallyItem           `json:"tally"`
-	State            int                          `json:"game_state"`
-	Phase            int                          `json:"phase"`
-	NightActionQueue []*FingerPoint               `json:"-"`
-	gameChan         chan *chanmsg.Activity       `json:"-"`
+	Players          map[string]player.Player `json:"-"`
+	PlayerList       []player.Player          `json:"players"`
+	Roleset          *roleset.Roleset         `json:"roleset"`
+	votes            map[player.Player]string `json:"-"`
+	Tally            []*tally.TallyItem       `json:"tally"`
+	State            int                      `json:"game_state"`
+	Phase            int                      `json:"phase"`
+	NightActionQueue []*FingerPoint           `json:"-"`
+	gameChan         chan *chanmsg.Activity   `json:"-"`
 }
 
-func New(joinChan chan *player.Player) *Game {
+func New(joinChan chan player.Player) *Game {
 	game := &Game{
-		Players:  make(map[uuid.UUID]*player.Player),
+		Players:  make(map[string]player.Player),
 		State:    NotRunning,
 		Phase:    0,
 		gameChan: make(chan *chanmsg.Activity),
@@ -48,16 +46,16 @@ func New(joinChan chan *player.Player) *Game {
 }
 
 func (g *Game) UpdatePlayerList() {
-	var l []*player.Player
+	var l []player.Player
 	for _, p := range g.Players {
-		if p.Role.Name == "" || p.Role.Alive {
+		if p.Role().Name == "" || p.Role().Alive {
 			l = append(l, p)
 		}
 	}
 	g.PlayerList = l
 }
 
-func (g *Game) AddPlayer(p *player.Player) error {
+func (g *Game) AddPlayer(p player.Player) error {
 	if g.State == NotRunning {
 		g.State = Setup
 	}
@@ -68,11 +66,11 @@ func (g *Game) AddPlayer(p *player.Player) error {
 	log.Printf("new player: %s", p.Identifier())
 	if len(g.Players) == 0 {
 		log.Printf("setting leader: %s", p.Identifier())
-		p.Leader = true
+		p.SetLeader()
 	}
 	p.SetChan(g.gameChan)
 
-	g.Players[p.UUID] = p
+	g.Players[p.ID()] = p
 	g.UpdatePlayerList()
 
 	// let everyone know they have a new friend
@@ -104,8 +102,8 @@ func (g *Game) Start() error {
 	for k, v := range g.PlayerList {
 		r := g.Roleset.Roles[roleOrder[k]]
 		log.Printf("%s: %s", v.Identifier(), r.Name)
-		g.Players[v.UUID].Role = r
-		g.Players[v.UUID].Message(message.Role, r)
+		g.Players[v.ID()].SetRole(r)
+		g.Players[v.ID()].Message(message.Role, r)
 	}
 
 	log.Printf("== starting game ==")
@@ -122,7 +120,7 @@ func (g *Game) NextPhase() {
 	g.UpdatePlayerList()
 	maxes := g.AliveMaxEvils()
 	g.NightActionQueue = []*FingerPoint{}
-	g.votes = make(map[*player.Player]uuid.UUID)
+	g.votes = make(map[player.Player]string)
 	g.RebuildTally()
 
 	log.Printf("alive maxes: %v", maxes)
@@ -148,8 +146,8 @@ func (g *Game) NextPhase() {
 func (g *Game) Parity() int {
 	parity := 0
 	for _, p := range g.Players {
-		if p.Role.Alive {
-			parity += p.Role.Parity
+		if p.Role().Alive {
+			parity += p.Role().Parity
 		}
 	}
 	return parity
@@ -158,10 +156,10 @@ func (g *Game) Parity() int {
 // RebuildTally calculates the current tally based on individual votes.
 // If there are no votes, it essentially clears it.
 func (g *Game) RebuildTally() {
-	t := make(map[*player.Player][]*player.Player)
+	t := make(map[player.Player][]player.Player)
 
 	for _, p := range g.PlayerList {
-		t[p] = []*player.Player{}
+		t[p] = []player.Player{}
 	}
 
 	for from, to := range g.votes {
@@ -194,7 +192,7 @@ func (g *Game) SetRoleset(r *roleset.Roleset) error {
 	return nil
 }
 
-func (g *Game) Vote(from *player.Player, to uuid.UUID) error {
+func (g *Game) Vote(from player.Player, to string) error {
 	if !g.Day() {
 		err := fmt.Errorf("vote failed; not day")
 		log.Println(err)
@@ -211,9 +209,9 @@ func (g *Game) Vote(from *player.Player, to uuid.UUID) error {
 	return nil
 }
 
-func (g *Game) EndDay(ousted *player.Player) {
+func (g *Game) EndDay(ousted player.Player) {
 	// if the player died, regenerate our list
-	if !ousted.Role.Kill() {
+	if !ousted.Role().Kill() {
 		g.UpdatePlayerList()
 	}
 	revealed := ousted.Reveal()
@@ -227,7 +225,7 @@ func (g *Game) EndDay(ousted *player.Player) {
 func (g *Game) AliveMaxEvils() []string {
 	var maxes []string
 	for _, p := range g.PlayerList {
-		if p.Role.Parity < 0 {
+		if p.Role().IsMaxEvil() {
 			maxes = append(maxes, p.Identifier())
 		}
 	}
@@ -240,7 +238,7 @@ func (g *Game) End(victor int) {
 	g.State = Finished
 }
 
-func (g *Game) VotedOut() *player.Player {
+func (g *Game) VotedOut() player.Player {
 	// if an even number, first to half. otherwise, 50%+1
 	threshold := len(g.PlayerList) / 2
 	if len(g.PlayerList)%2 == 1 {
@@ -297,7 +295,7 @@ func (g *Game) Day() bool {
 	return g.Phase%2 == 1
 }
 
-func (g *Game) RemovePlayer(id uuid.UUID) {
+func (g *Game) RemovePlayer(id string) {
 	delete(g.Players, id)
 	g.UpdatePlayerList()
 
@@ -310,10 +308,13 @@ func (g *Game) RemovePlayer(id uuid.UUID) {
 }
 
 func (g *Game) Reset() {
-	g.Players = make(map[uuid.UUID]*player.Player)
-	g.PlayerList = []*player.Player{}
+	for id, p := range g.Players {
+		p.LeaveGame()
+		delete(g.Players, id)
+	}
+	g.PlayerList = []player.Player{}
 	g.Roleset = nil
-	g.votes = make(map[*player.Player]uuid.UUID)
+	g.votes = make(map[player.Player]string)
 	g.Tally = []*tally.TallyItem{}
 	g.State = NotRunning
 	g.Phase = 0
@@ -323,12 +324,12 @@ func (g *Game) Reset() {
 func (g *Game) Broadcast(title string, payload interface{}) {
 	for _, p := range g.Players {
 		if err := p.Message(title, payload); err != nil {
-			log.Printf("%s: error messaging (%s)", p.UUID, err)
+			log.Printf("%s: error messaging (%s)", p.ID(), err)
 		}
 	}
 }
 
-func (g *Game) HandleJoins(joinChan chan *player.Player) {
+func (g *Game) HandleJoins(joinChan chan player.Player) {
 	for {
 		p := <-joinChan
 		if err := g.AddPlayer(p); err != nil {

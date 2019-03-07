@@ -27,11 +27,11 @@ func Short(verbose []*TallyItem) []*ShortTally {
 }
 
 type TallyItem struct {
-	Candidate *player.Player   `json:"candidate"`
-	Votes     []*player.Player `json:"votes"`
+	Candidate player.Player   `json:"candidate"`
+	Votes     []player.Player `json:"votes"`
 }
 
-func Item(c *player.Player, v []*player.Player) *TallyItem {
+func Item(c player.Player, v []player.Player) *TallyItem {
 	return &TallyItem{
 		Candidate: c,
 		Votes:     v,
