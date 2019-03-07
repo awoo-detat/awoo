@@ -308,6 +308,20 @@ func (g *Game) RemovePlayer(id string) {
 	}
 }
 
+func (g *Game) Reset() {
+	for id, p := range g.Players {
+		p.LeaveGame()
+		delete(g.Players, id)
+	}
+	g.PlayerList = []player.Player{}
+	g.Roleset = nil
+	g.votes = make(map[player.Player]string)
+	g.Tally = []*tally.TallyItem{}
+	g.State = NotRunning
+	g.Phase = 0
+	g.NightActionQueue = []*FingerPoint{}
+}
+
 func (g *Game) Broadcast(title string, payload interface{}) {
 	for _, p := range g.Players {
 		if err := p.Message(title, payload); err != nil {

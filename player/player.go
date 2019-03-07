@@ -175,6 +175,7 @@ func (p *GamePlayer) InGame() bool {
 }
 
 func (p *GamePlayer) LeaveGame() {
+	log.Printf("%s: leaving game", p.Identifier())
 	p.gameChan = nil
 }
 
@@ -183,4 +184,5 @@ func (p *GamePlayer) Quit() {
 		log.Printf("error closing channel: %s", err)
 	}
 	p.gameChan <- chanmsg.New(chanmsg.Quit, p.ID())
+	p.LeaveGame()
 }
