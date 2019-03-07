@@ -254,6 +254,13 @@ func (g *Game) VotedOut() player.Player {
 }
 
 func (g *Game) QueueNightAction(fp *FingerPoint) {
+	for i, a := range g.NightActionQueue {
+		if a.From.ID() == fp.From.ID() {
+			log.Printf("%s: replacing night action", fp.From.Identifier())
+			g.NightActionQueue = append(g.NightActionQueue[:i], g.NightActionQueue[i+1:]...)
+			break
+		}
+	}
 	g.NightActionQueue = append(g.NightActionQueue, fp)
 	log.Printf("%v / %v actions", len(g.NightActionQueue), len(g.PlayerList))
 	if len(g.NightActionQueue) >= len(g.PlayerList) {
