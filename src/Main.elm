@@ -5,9 +5,7 @@ import Html exposing (..)
 import Html.Attributes as HA
 import Html.Events as HE exposing (onClick, onInput)
 import Json.Decode as JD
-import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Json.Encode as JE
-import Time exposing (Time)
 import WebSocket as WS
 
 
@@ -126,6 +124,7 @@ type Msg
     | OpenVoteDialog
     | VoteAction String
     | SetRules String
+    | ResetGame
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -334,6 +333,15 @@ update msg model =
                         )
                   ]
 
+        ResetGame ->
+          model
+            ! [ WS.send model.socketUrl
+              (JE.encode 0
+                (JE.object
+                  [("resetGame", JE.bool True)]
+                )
+              )
+            ]
 
 
 -- decoders
@@ -485,7 +493,7 @@ view model =
 
             Lobby ->
                 [ div [ HA.class "lobby row d-flex justify-content-center" ]
-                    (renderLobby model)
+                    ([renderLobby model])
                 ]
 
             Day ->
@@ -504,13 +512,15 @@ view model =
                         [ HA.class "notification" ]
                         [ text "regrettably, you have died. whether you are a werewolf's snack, or fell prey to the machinations of paranoid villagers, surely someday you will have your revenge." ]
                     ]
+                    , renderLeader model
                 ]
 
             FinalGood ->
                 [ div [ HA.class "finale-good row d-flex justify-content-center" ]
                     [ div [ HA.class "notification" ]
-                        [ text "the game is over, and the good guys won! the villagers are safe... for now." ]
+                        [ text "the game is over, and the \"good\" guys won! the villagers are safe... for now." ]
                     ]
+                    , renderLeader model
                 ]
 
             FinalEvil ->
@@ -518,6 +528,7 @@ view model =
                     [ div [ HA.class "notification" ]
                         [ text "the game is over, and the werewolves won! the villagers are lunch... for now." ]
                     ]
+                    , renderLeader model
                 ]
         )
 
@@ -680,7 +691,7 @@ renderTallyItem tally =
 
 renderTallyVote : String -> Html Msg
 renderTallyVote vote =
-    span [ HA.class "tally-vote" ] [ text vote ]
+    div [ HA.class "tally-vote" ] [ text vote ]
 
 
 renderGame : Model -> Html Msg
@@ -696,12 +707,24 @@ renderGame model =
             ]
         , div [ HA.class "tally-list" ]
             (renderTally model.tally)
+        , renderLeader model
         ]
 
+renderLeader : Model -> Html Msg
+renderLeader model =
+    if model.isLeader then div []
+      [ div [HA.class "leader-display"]
+        [ button
+          [HA.type_ "button", HA.class "btn btn-warn reset-game", onClick ResetGame]
+          [text "Reset Game"]
+        ]
 
-renderLobby : Model -> List (Html Msg)
+      ]
+    else div [] [text ""]
+
+renderLobby : Model -> Html Msg
 renderLobby model =
-    [ div []
+    div []
         [ div
             [ HA.class "current-rules" ]
             [ if model.isLeader && model.rulesetName == "" then
@@ -720,8 +743,8 @@ renderLobby model =
             (renderLobbyList
                 model.playerlist
             )
+        , renderLeader model
         ]
-    ]
 
 
 renderLobbyList : List Player -> List (Html Msg)

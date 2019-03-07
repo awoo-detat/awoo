@@ -55,3 +55,14 @@ a:not([href]):not([tabindex]) {
 .role-image {
 	height: -webkit-fill-available;
 }
+
+.tallyitem {
+	padding: 10px;
+	border-style: double hidden double hidden;
+	border-width: 5px;
+}
+
+.tally-vote {
+	font-size: 10px;
+	padding: 4px;
+}
