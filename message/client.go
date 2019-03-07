@@ -17,6 +17,7 @@ type ClientMessage struct {
 	Vote           string `json:"voteFor"`
 	Time           string `json:"time"`
 	Roleset        string `json:"setRoleset"`
+	Reset          bool   `json:"resetGame"`
 }
 
 func Decode(raw []byte) *ClientMessage {

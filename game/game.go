@@ -303,8 +303,7 @@ func (g *Game) RemovePlayer(id string) {
 	g.Broadcast(message.PlayerList, g.PlayerList)
 
 	if len(g.PlayerList) == 0 {
-		g.State = NotRunning
-		g.Phase = 0
+		g.Reset()
 	}
 }
 
@@ -349,6 +348,7 @@ func (g *Game) HandlePlayerMessage() {
 		case chanmsg.Quit:
 			log.Printf("%s: quitting", from.Identifier())
 			g.RemovePlayer(activity.From)
+
 		case chanmsg.PlayerList:
 			log.Printf("%s: requesting player list", from.Identifier())
 			from.Message(message.PlayerList, g.PlayerList)
@@ -365,7 +365,7 @@ func (g *Game) HandlePlayerMessage() {
 		case chanmsg.Vote:
 			log.Printf("%s: voting for %s", from.Identifier(), g.Players[activity.To].Identifier())
 			if err := g.Vote(g.Players[activity.From], activity.To); err != nil {
-
+				// TODO?
 			}
 
 		case chanmsg.NightAction:
@@ -375,7 +375,9 @@ func (g *Game) HandlePlayerMessage() {
 				To:   to,
 			}
 			g.QueueNightAction(fp)
+		case chanmsg.ResetGame:
+			log.Printf("%s: resetting game", from.Identifier())
+			g.Reset()
 		}
-
 	}
 }

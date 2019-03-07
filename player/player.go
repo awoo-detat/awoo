@@ -133,6 +133,9 @@ func (p *GamePlayer) Play() {
 			activity := chanmsg.New(chanmsg.SetRoleset, p.ID())
 			activity.Roleset = m.Roleset
 			p.gameChan <- activity
+		} else if m.Reset {
+			p.Leader = false
+			p.gameChan <- chanmsg.New(chanmsg.ResetGame, p.ID())
 		} else if m.Vote != "" {
 			if m.Time == message.TimeDay {
 				p.Vote(m.Vote)
