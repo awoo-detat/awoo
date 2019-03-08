@@ -1,0 +1,68 @@
+body {
+	font-family: 'Indie Flower', cursive;
+	padding-top: 64px;
+}
+
+input {
+	text-align: center;
+}
+
+ul {
+	padding: 0px;
+	text-align: center;
+}
+
+a:not([href]):not([tabindex]) {
+	color: #CCAAAA;
+}
+
+.navbar-dark .navbar-brand {
+	color: #CCAAAA;
+	margin: 0;
+}
+
+.awoo-name-entry-button {
+	padding: 5px;
+}
+
+.current-rules {
+	text-align: center;
+}
+
+.daytime {
+	background-color: #FFCC99;
+	height: 1000px;
+}
+
+.nighttime {
+	background-color: #224466;
+	color: #CCAAAA;
+	height: 1000px;
+}
+
+.interactions {
+	text-align: center;
+}
+
+.interactions button {
+	margin: 10px;
+}
+
+.vote-list-select {
+	list-style: none;
+}
+
+.role-image {
+	height: -webkit-fill-available;
+}
+
+.tallyitem {
+	padding: 10px;
+	border-style: double hidden double hidden;
+	border-width: 5px;
+}
+
+.tally-vote {
+	font-size: 10px;
+	padding: 4px;
+}

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Awooo</title>
+	<script defer src="https://use.fontawesome.com/releases/v5.7.2/js/all.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+	<link rel="stylesheet" href="assets/awoo.css">
+	<script type='text/javascript' src='js/awoo.js'></script>
+	<link href="https://fonts.googleapis.com/css?family=Indie+Flower" rel="stylesheet">
+</head>
+
+<body>
+	<nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark awoo-nav">
+		<div class="container d-flex justify-content-center">
+			<a class="navbar-brand"> WEREWOLF </a>
+		</div>
+	</nav>
+  <div id="awoo-main"></div>
+  <script>
+	let awoo = document.getElementById('awoo-main');
+	if(awoo !== undefined && awoo !== null) {
+		var url = "ws://" + window.location.host + "/awoo" + window.location.search;
+		var app = Elm.Awoo.embed(awoo, {socketUrl: url})
+	}
+  </script>
+</body>
+</html>
