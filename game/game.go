@@ -181,6 +181,8 @@ func (g *Game) RebuildTally() {
 func (g *Game) SetRoleset(r *roleset.Roleset) error {
 	if g.State != Setup {
 		return fmt.Errorf("cannot set roleset: game is not in 'not running' phase")
+	} else if len(r.Roles) < len(g.Players) {
+		return fmt.Errorf("roleset %s only has %v roles; %v players in lobby", r.Name, len(r.Roles), len(g.Players))
 	}
 
 	g.Roleset = r
@@ -367,7 +369,10 @@ func (g *Game) HandlePlayerMessage() {
 		case chanmsg.SetRoleset:
 			log.Printf("%s: setting roleset %s", from.Identifier(), activity.Roleset)
 			sets := roleset.List()
-			g.SetRoleset(sets[activity.Roleset])
+			if err := g.SetRoleset(sets[activity.Roleset]); err != nil {
+				log.Printf("error: %s", err)
+				from.Message(message.Error, err)
+			}
 
 		case chanmsg.Vote:
 			log.Printf("%s: voting for %s", from.Identifier(), g.Players[activity.To].Identifier())
