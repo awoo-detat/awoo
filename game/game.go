@@ -248,10 +248,16 @@ func (g *Game) VotedOut() player.Player {
 		threshold++
 	}
 
+	votes := 0
+	var ousted player.Player
 	for _, item := range g.Tally {
+		votes += len(item.Votes)
 		if len(item.Votes) >= threshold {
-			return item.Candidate
+			ousted = item.Candidate
 		}
+	}
+	if votes == len(g.PlayerList) && ousted != nil {
+		return ousted
 	}
 	return nil
 }
