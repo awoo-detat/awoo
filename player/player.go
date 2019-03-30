@@ -122,13 +122,13 @@ func (p *GamePlayer) Play() {
 		if m.JoinName != "" {
 			p.Name = m.JoinName
 
-			// I don't love that this happens here.
-			// TODO make that a separate request
 			p.joinChan <- p
 		} else if m.PollPlayerList {
 			p.gameChan <- chanmsg.New(chanmsg.PlayerList, p.ID())
 		} else if m.PollTally {
 			p.gameChan <- chanmsg.New(chanmsg.Tally, p.ID())
+		} else if m.FetchRolesets {
+			p.gameChan <- chanmsg.New(chanmsg.GetRolesets, p.ID())
 		} else if m.Roleset != "" {
 			activity := chanmsg.New(chanmsg.SetRoleset, p.ID())
 			activity.Roleset = m.Roleset

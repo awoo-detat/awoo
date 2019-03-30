@@ -3,6 +3,7 @@ package chanmsg
 const (
 	Join = iota
 	SetName
+	GetRolesets
 	SetRoleset
 	PlayerList
 	Vote

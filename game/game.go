@@ -367,6 +367,10 @@ func (g *Game) HandlePlayerMessage() {
 			log.Printf("%s: requesting tally", from.Identifier())
 			from.Message(message.Tally, tally.Short(g.Tally))
 
+		case chanmsg.GetRolesets:
+			log.Printf("%s: requesting available rolesets", from.Identifier())
+			from.Message(message.RolesetList, roleset.List())
+
 		case chanmsg.SetRoleset:
 			log.Printf("%s: setting roleset %s", from.Identifier(), activity.Roleset)
 			sets := roleset.List()
@@ -385,6 +389,7 @@ func (g *Game) HandlePlayerMessage() {
 				To:   to,
 			}
 			g.QueueNightAction(fp)
+
 		case chanmsg.ResetGame:
 			log.Printf("%s: resetting game", from.Identifier())
 			g.Reset()
