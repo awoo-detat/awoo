@@ -25,7 +25,12 @@ Play!
 ## How to build it (if you want to change the code)
 The simplest, though most time consuming, option is to run:
 
-	make
+```
+go get github.com/jteeuwen/go-bindata/...
+go get github.com/elazarl/go-bindata-assetfs/...
+npm i -g elm@0.18
+make
+```
 
 That will run the testsuite, rebuild the assets and compile the code into the `./awoo` binary.
 
