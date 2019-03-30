@@ -25,12 +25,12 @@ type Game struct {
 	Players          map[string]player.Player `json:"-"`
 	PlayerList       []player.Player          `json:"players"`
 	Roleset          *roleset.Roleset         `json:"roleset"`
-	votes            map[player.Player]string `json:"-"`
 	Tally            []*tally.TallyItem       `json:"tally"`
 	State            int                      `json:"game_state"`
 	Phase            int                      `json:"phase"`
 	NightActionQueue []*FingerPoint           `json:"-"`
-	gameChan         chan *chanmsg.Activity   `json:"-"`
+	votes            map[player.Player]string
+	gameChan         chan *chanmsg.Activity
 }
 
 func New(joinChan chan player.Player) *Game {
@@ -287,23 +287,24 @@ func (g *Game) ProcessStartActionQueue() {
 }
 
 func (g *Game) ProcessNightActionQueue() {
-	var deaths []*player.Revealed
+	var death *player.Revealed
 	for _, action := range g.NightActionQueue {
 		result := g.NightAction(action)
 		if result.PlayerMessage != "" {
 			action.From.Message(message.Private, result.PlayerMessage)
 		}
-		if result.Killed != nil {
-			deaths = append(deaths, action.To.Reveal())
-			action.To.Message(message.Dead, "")
+
+		// TODO maybe more than one death?
+		if result.Killed != nil && death == nil && !result.Killed.Role().Kill() {
+			death = result.Killed.Reveal()
+			result.Killed.Message(message.Dead, "")
 		}
 	}
 
 	g.NextPhase()
 
-	if len(deaths) > 0 {
-		// TODO maybe more than one death?
-		g.Broadcast(message.Targeted, deaths[0])
+	if death != nil {
+		g.Broadcast(message.Targeted, death)
 	}
 }
 

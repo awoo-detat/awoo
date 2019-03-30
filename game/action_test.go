@@ -128,18 +128,6 @@ func (suite *ActionTestSuite) TestNightKill() {
 	assert.Equal(suite.T(), suite.to, result.Killed)
 }
 
-// TestToughNightKill ensures that a wolf eating someone who doesn't die
-// won't reveal the target
-func (suite *ActionTestSuite) TestToughNightKill() {
-	suite.from.SetRole(role.Werewolf())
-	suite.to.SetRole(role.Villager())
-	suite.to.Role().Health = 2
-
-	result := suite.game.NightAction(&FingerPoint{suite.from, suite.to})
-	assert.Equal(suite.T(), "", result.PlayerMessage)
-	assert.Nil(suite.T(), result.Killed)
-}
-
 // TestKnowsMaxes tests that a role that is told who the wolves are will be told.
 func (suite *ActionTestSuite) TestKnowsMaxes() {
 	suite.from.SetRole(role.Cultist())
