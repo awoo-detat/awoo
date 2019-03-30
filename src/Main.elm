@@ -724,7 +724,7 @@ serverDialogBody message =
 
 renderTally : List TallyItem -> List (Html Msg)
 renderTally tally =
-    [ ul [ HA.class "tally" ] (List.map renderTallyItem (List.sortBy votesInTallyItem tally) |> List.reverse) ]
+    [ h2 [ HA.class "center" ] [ text "votes" ], ul [ HA.class "tally" ] (List.map renderTallyItem (List.sortBy votesInTallyItem tally) |> List.reverse) ]
 
 
 votesInTallyItem : TallyItem -> Int

@@ -9857,18 +9857,33 @@ var _segfaultvicta$awoo$Awoo$renderTally = function (tally) {
 	return {
 		ctor: '::',
 		_0: A2(
-			_elm_lang$html$Html$ul,
+			_elm_lang$html$Html$h2,
 			{
 				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('tally'),
+				_0: _elm_lang$html$Html_Attributes$class('center'),
 				_1: {ctor: '[]'}
 			},
-			_elm_lang$core$List$reverse(
-				A2(
-					_elm_lang$core$List$map,
-					_segfaultvicta$awoo$Awoo$renderTallyItem,
-					A2(_elm_lang$core$List$sortBy, _segfaultvicta$awoo$Awoo$votesInTallyItem, tally)))),
-		_1: {ctor: '[]'}
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html$text('votes'),
+				_1: {ctor: '[]'}
+			}),
+		_1: {
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$ul,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('tally'),
+					_1: {ctor: '[]'}
+				},
+				_elm_lang$core$List$reverse(
+					A2(
+						_elm_lang$core$List$map,
+						_segfaultvicta$awoo$Awoo$renderTallyItem,
+						A2(_elm_lang$core$List$sortBy, _segfaultvicta$awoo$Awoo$votesInTallyItem, tally)))),
+			_1: {ctor: '[]'}
+		}
 	};
 };
 var _segfaultvicta$awoo$Awoo$renderGhostView = function (model) {
