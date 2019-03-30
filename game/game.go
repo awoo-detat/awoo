@@ -88,6 +88,9 @@ func (g *Game) AddPlayer(p player.Player) error {
 }
 
 func (g *Game) ShouldStart() bool {
+	if g.Roleset != nil {
+		log.Printf("%v/%v players", len(g.Players), len(g.Roleset.Roles))
+	}
 	return g.Roleset != nil && len(g.Players) == len(g.Roleset.Roles)
 }
 
