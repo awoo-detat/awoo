@@ -22,10 +22,21 @@ Play!
 
 `A W O O`
 
+## Dependencies (for development)
+Install go and npm through your favorite means. Then install bindata and elm.
+
+```
+go get github.com/jteeuwen/go-bindata/...
+go get github.com/elazarl/go-bindata-assetfs/...
+npm i -g elm@0.18
+```
+
 ## How to build it (if you want to change the code)
 The simplest, though most time consuming, option is to run:
 
-	make
+```
+make
+```
 
 That will run the testsuite, rebuild the assets and compile the code into the `./awoo` binary.
 

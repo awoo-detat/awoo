@@ -3,48 +3,22 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "dvabztWVQX8f6oMLRyv4dLH+TGY=",
-			"origin": "github.com/stretchr/testify/vendor/github.com/davecgh/go-spew/spew",
-			"path": "github.com/davecgh/go-spew/spew",
-			"revision": "21cb1c2932a2d04c6792d5ad106243c6e36a3a7d",
-			"revisionTime": "2019-01-10T02:11:10Z"
+			"checksumSHA1": "7DxViusFRJ7UPH0jZqYatwDrOkY=",
+			"path": "github.com/elazarl/go-bindata-assetfs",
+			"revision": "38087fe4dafb822e541b3f7955075cc1c30bd294",
+			"revisionTime": "2018-02-23T16:03:09Z"
 		},
 		{
-			"checksumSHA1": "+QA+yCapL80NO5GzibuyicX6g0E=",
+			"checksumSHA1": "vxQY0BYiRtsydImHJdIXTbqF/w0=",
 			"path": "github.com/gofrs/uuid",
-			"revision": "6b08a5c5172ba18946672b49749cde22873dd7c2",
-			"revisionTime": "2019-01-11T07:18:23Z"
+			"revision": "2593f3d8aa45b432942fe24758a279312d0f8719",
+			"revisionTime": "2019-03-20T16:13:50Z"
 		},
 		{
-			"checksumSHA1": "YdGi91Ni8IlbfOVEtCu2XHpBwX4=",
+			"checksumSHA1": "gr0edNJuVv4+olNNZl5ZmwLgscA=",
 			"path": "github.com/gorilla/websocket",
-			"revision": "7c8e298727d149d7c329b4dec7e94e1932ac5c11",
-			"revisionTime": "2018-12-18T07:24:45Z"
-		},
-		{
-			"checksumSHA1": "LuFv4/jlrmFNnDb/5SCSEPAM9vU=",
-			"origin": "github.com/stretchr/testify/vendor/github.com/pmezard/go-difflib/difflib",
-			"path": "github.com/pmezard/go-difflib/difflib",
-			"revision": "21cb1c2932a2d04c6792d5ad106243c6e36a3a7d",
-			"revisionTime": "2019-01-10T02:11:10Z"
-		},
-		{
-			"checksumSHA1": "gVqfXhvebqIrkZHqnpeMMZxZ3l4=",
-			"path": "github.com/stretchr/testify/assert",
-			"revision": "21cb1c2932a2d04c6792d5ad106243c6e36a3a7d",
-			"revisionTime": "2019-01-10T02:11:10Z"
-		},
-		{
-			"checksumSHA1": "OCKcgmIdXCQ92Xtt6O+StrdYVz4=",
-			"path": "github.com/stretchr/testify/require",
-			"revision": "21cb1c2932a2d04c6792d5ad106243c6e36a3a7d",
-			"revisionTime": "2019-01-10T02:11:10Z"
-		},
-		{
-			"checksumSHA1": "lIp4dQzfVYRQARgsmRm3h3wRFgs=",
-			"path": "github.com/stretchr/testify/suite",
-			"revision": "21cb1c2932a2d04c6792d5ad106243c6e36a3a7d",
-			"revisionTime": "2019-01-10T02:11:10Z"
+			"revision": "0ec3d1bd7fe50c503d6df98ee649d81f4857c564",
+			"revisionTime": "2019-03-06T00:42:57Z"
 		}
 	],
 	"rootPath": "github.com/awoo-detat/awoo"
