@@ -23,7 +23,7 @@
   <script>
 	let awoo = document.getElementById('awoo-main');
 	if(awoo !== undefined && awoo !== null) {
-		var url = "wss://" + window.location.host + "/awoo" + window.location.search;
+		var url = "ws://" + window.location.host + "/awoo" + window.location.search;
 		var app = Elm.Awoo.embed(awoo, {socketUrl: url})
 	}
   </script>

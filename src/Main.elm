@@ -29,10 +29,12 @@ type alias Model =
     , role : Role
     , playerlist : List Player
     , rulesetName : String
+    , rolesetList : List RoleSet
     , roleDialog : Bool
     , voteDialog : Bool
     , targetedDialog : Bool
     , serverDialog : Bool
+    , error : Bool
     , lastTargeted : TargetedDecoderContainer
     , votedUUID : String
     , serverMessage : String
@@ -97,10 +99,12 @@ init flags =
       , role = Role "" "" False 0 0
       , playerlist = []
       , rulesetName = ""
+      , rolesetList = []
       , roleDialog = False
       , voteDialog = False
       , targetedDialog = False
       , serverDialog = False
+      , error = False
       , lastTargeted = TargetedDecoderContainer "" "" False
       , votedUUID = ""
       , serverMessage = ""
@@ -143,7 +147,11 @@ update msg model =
                         "pleasewait" ->
                             case JD.decodeValue pleasewaitDecoder m.payload of
                                 Ok p ->
-                                    { model | isLeader = p.isLeader, gameState = Lobby } ! [ WS.send model.socketUrl (JE.encode 0 (JE.object [ ( "pollPlayerList", JE.bool True ) ])) ]
+                                    if p.isLeader then
+                                        { model | isLeader = True, gameState = Lobby } ! [ WS.send model.socketUrl (JE.encode 0 (JE.object [ ( "fetchRolesets", JE.bool True ) ])) ]
+
+                                    else
+                                        { model | isLeader = False, gameState = Lobby } ! [ WS.send model.socketUrl (JE.encode 0 (JE.object [ ( "pollPlayerList", JE.bool True ) ])) ]
 
                                 Err err ->
                                     let
@@ -151,6 +159,22 @@ update msg model =
                                             Debug.log "pleasewait payload error: " ( err, m.payload )
                                     in
                                     model ! []
+
+                        "rolesetlist" ->
+                            case JD.decodeValue partialRolesetListDecoder m.payload of
+                                Ok p ->
+                                    let
+                                        roles =
+                                            List.map Tuple.second p
+                                    in
+                                    { model | rolesetList = roles } ! [ WS.send model.socketUrl (JE.encode 0 (JE.object [ ( "pollPlayerList", JE.bool True ) ])) ]
+
+                                Err err ->
+                                    let
+                                        _ =
+                                            Debug.log "rolesetlist payload error: " ( err, m.payload )
+                                    in
+                                    model ! [ WS.send model.socketUrl (JE.encode 0 (JE.object [ ( "pollPlayerList", JE.bool True ) ])) ]
 
                         "roleset" ->
                             case JD.decodeValue rolesetDecoder m.payload of
@@ -255,6 +279,18 @@ update msg model =
                                 Err err ->
                                     let
                                         _ =
+                                            Debug.log "error payload error" ( err, m.payload )
+                                    in
+                                    model ! []
+
+                        "error" ->
+                            case JD.decodeValue JD.string m.payload of
+                                Ok message ->
+                                    { model | serverDialog = True, error = True, serverMessage = message } ! []
+
+                                Err err ->
+                                    let
+                                        _ =
                                             Debug.log "private message payload error" ( err, m.payload )
                                     in
                                     model ! []
@@ -306,7 +342,7 @@ update msg model =
             { model | roleDialog = False, voteDialog = False, targetedDialog = False, votedUUID = "" } ! []
 
         AckServerDialog ->
-            { model | serverDialog = False, serverMessage = "" } ! []
+            { model | serverDialog = False, error = False, serverMessage = "" } ! []
 
         OpenVoteDialog ->
             { model | voteDialog = True } ! []
@@ -334,14 +370,15 @@ update msg model =
                   ]
 
         ResetGame ->
-          model
-            ! [ WS.send model.socketUrl
-              (JE.encode 0
-                (JE.object
-                  [("resetGame", JE.bool True)]
-                )
-              )
-            ]
+            model
+                ! [ WS.send model.socketUrl
+                        (JE.encode 0
+                            (JE.object
+                                [ ( "resetGame", JE.bool True ) ]
+                            )
+                        )
+                  ]
+
 
 
 -- decoders
@@ -435,6 +472,11 @@ type alias RoleSet =
     }
 
 
+partialRolesetListDecoder : JD.Decoder (List ( String, RoleSet ))
+partialRolesetListDecoder =
+    JD.keyValuePairs rolesetDecoder
+
+
 rolesetDecoder : JD.Decoder RoleSet
 rolesetDecoder =
     JD.map3 RoleSet
@@ -493,7 +535,7 @@ view model =
 
             Lobby ->
                 [ div [ HA.class "lobby row d-flex justify-content-center" ]
-                    ([renderLobby model])
+                    ([ renderLobby model ] ++ [ dialog model ])
                 ]
 
             Day ->
@@ -511,8 +553,11 @@ view model =
                     [ div
                         [ HA.class "notification" ]
                         [ text "regrettably, you have died. whether you are a werewolf's snack, or fell prey to the machinations of paranoid villagers, surely someday you will have your revenge." ]
+                    , div
+                        [ HA.class "spooky-ghost-vision" ]
+                        [ renderGhostView model ]
                     ]
-                    , renderLeader model
+                , renderLeader model
                 ]
 
             FinalGood ->
@@ -520,7 +565,7 @@ view model =
                     [ div [ HA.class "notification" ]
                         [ text "the game is over, and the \"good\" guys won! the villagers are safe... for now." ]
                     ]
-                    , renderLeader model
+                , renderLeader model
                 ]
 
             FinalEvil ->
@@ -528,7 +573,7 @@ view model =
                     [ div [ HA.class "notification" ]
                         [ text "the game is over, and the werewolves won! the villagers are lunch... for now." ]
                     ]
-                    , renderLeader model
+                , renderLeader model
                 ]
         )
 
@@ -587,8 +632,13 @@ dialog model =
                 , containerClass = Just "modal-container"
                 , header =
                     Just
-                        (div [ HA.class "d-flex fill", onClick AckServerDialog ]
-                            [ serverDialogHeader, i [ HA.class "p-2 fa fa-times fa-4x cancel-icon" ] [] ]
+                        (if model.error then
+                            div [ HA.class "d-flex fill error-dialog-header", onClick AckServerDialog ]
+                                [ serverDialogHeaderError, i [ HA.class "p-2 fa fa-times fa-4x cancel-icon" ] [] ]
+
+                         else
+                            div [ HA.class "d-flex fill", onClick AckServerDialog ]
+                                [ serverDialogHeader, i [ HA.class "p-2 fa fa-times fa-4x cancel-icon" ] [] ]
                         )
                 , body =
                     Just
@@ -621,6 +671,11 @@ targetedDialogHeader =
 serverDialogHeader : Html Msg
 serverDialogHeader =
     div [ HA.class "mr-auto p-2" ] [ span [ HA.class "modal-header-text" ] [ text "A sudden revelation!" ] ]
+
+
+serverDialogHeaderError : Html Msg
+serverDialogHeaderError =
+    div [ HA.class "mr-auto p-2 error-dialog-header" ] [ span [ HA.class "modal-header-text" ] [ text "A lamentable error!" ] ]
 
 
 roleDialogBody : Role -> Html Msg
@@ -669,7 +724,7 @@ serverDialogBody message =
 
 renderTally : List TallyItem -> List (Html Msg)
 renderTally tally =
-    [ ul [ HA.class "tally" ] (List.map renderTallyItem (List.sortBy votesInTallyItem tally) |> List.reverse) ]
+    [ h2 [ HA.class "center" ] [ text "votes" ], ul [ HA.class "tally" ] (List.map renderTallyItem (List.sortBy votesInTallyItem tally) |> List.reverse) ]
 
 
 votesInTallyItem : TallyItem -> Int
@@ -694,6 +749,15 @@ renderTallyVote vote =
     div [ HA.class "tally-vote" ] [ text vote ]
 
 
+
+-- eventually, this should display roles, for maximal ghost amusement. ghosement.
+
+
+renderGhostView : Model -> Html Msg
+renderGhostView model =
+    div [ HA.class "tally-list" ] (renderTally model.tally)
+
+
 renderGame : Model -> Html Msg
 renderGame model =
     div []
@@ -710,17 +774,21 @@ renderGame model =
         , renderLeader model
         ]
 
+
 renderLeader : Model -> Html Msg
 renderLeader model =
-    if model.isLeader then div []
-      [ div [HA.class "leader-display"]
-        [ button
-          [HA.type_ "button", HA.class "btn btn-warn reset-game", onClick ResetGame]
-          [text "Reset Game"]
-        ]
+    if model.isLeader then
+        div []
+            [ div [ HA.class "leader-display" ]
+                [ button
+                    [ HA.type_ "button", HA.class "btn btn-warn reset-game", onClick ResetGame ]
+                    [ text "Reset Game" ]
+                ]
+            ]
 
-      ]
-    else div [] [text ""]
+    else
+        div [] [ text "" ]
+
 
 renderLobby : Model -> Html Msg
 renderLobby model =
@@ -729,11 +797,7 @@ renderLobby model =
             [ HA.class "current-rules" ]
             [ if model.isLeader && model.rulesetName == "" then
                 div [ HA.class "rulesets" ]
-                    [ div [] [ text "Pick a Roleset:  " ]
-                    , div [ HA.class "ruleset", onClick (SetRules "Vanilla Fiver") ] [ text "Vanilla Fiver" ]
-                    , div [ HA.class "ruleset", onClick (SetRules "Fast Fiver") ] [ text "Fast Fiver" ]
-                    , div [ HA.class "ruleset", onClick (SetRules "Basic Niner") ] [ text "Basic Niner" ]
-                    ]
+                    (renderRolesetList model.rolesetList)
 
               else
                 span [] [ text model.rulesetName ]
@@ -747,6 +811,15 @@ renderLobby model =
         ]
 
 
+renderRolesetList : List RoleSet -> List (Html Msg)
+renderRolesetList rolesetList =
+    [ ul [ HA.class "rolesets" ] (List.map renderRoleset rolesetList) ]
+
+
+renderRoleset roleset =
+    div [ HA.class "ruleset", onClick (SetRules roleset.name) ] [ text (roleset.name ++ " - " ++ roleset.description) ]
+
+
 renderLobbyList : List Player -> List (Html Msg)
 renderLobbyList players =
     [ ul [ HA.class "players" ] (List.map renderLobbyPlayer players) ]
@@ -755,5 +828,9 @@ renderLobbyList players =
 renderLobbyPlayer : Player -> Html Msg
 renderLobbyPlayer player =
     div [ HA.id ("player-" ++ player.uuid) ]
-        [ text player.name
-        ]
+        (if player.leader then
+            [ text (player.name ++ " (Leader)") ]
+
+         else
+            [ text player.name ]
+        )
