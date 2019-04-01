@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net"
 	"net/http"
 	"os"
 
@@ -26,7 +27,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("running...")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "42300"
+	}
+	log.Printf("running on port %s...\n", port)
 	log.SetOutput(file)
-	log.Fatal(http.ListenAndServe(":42300", nil))
+	log.Fatal(http.ListenAndServe(net.JoinHostPort("", port), nil))
 }
