@@ -23,15 +23,10 @@ func main() {
 	}
 	http.Handle("/", http.FileServer(server))
 
-	file, err := os.OpenFile("werewolf.log", os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
-	if err != nil {
-		log.Fatal(err)
-	}
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "42300"
 	}
 	log.Printf("running on port %s...\n", port)
-	log.SetOutput(file)
 	log.Fatal(http.ListenAndServe(net.JoinHostPort("", port), nil))
 }
