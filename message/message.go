@@ -21,6 +21,7 @@ const (
 	Private     = "privatemessage"
 	Dead        = "dead"
 	Error       = "error"
+	Reset      = "reset"
 )
 
 type Message struct {

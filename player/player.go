@@ -174,6 +174,7 @@ func (p *GamePlayer) SetRole(r *role.Role) {
 }
 
 func (p *GamePlayer) InGame() bool {
+	p.Message(message.Reset, true)
 	return p.gameChan != nil
 }
 
