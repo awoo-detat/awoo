@@ -25,12 +25,12 @@ type Game struct {
 	Players          map[string]player.Player `json:"-"`
 	PlayerList       []player.Player          `json:"players"`
 	Roleset          *roleset.Roleset         `json:"roleset"`
-	votes            map[player.Player]string `json:"-"`
 	Tally            []*tally.TallyItem       `json:"tally"`
 	State            int                      `json:"game_state"`
 	Phase            int                      `json:"phase"`
 	NightActionQueue []*FingerPoint           `json:"-"`
-	gameChan         chan *chanmsg.Activity   `json:"-"`
+	votes            map[player.Player]string
+	gameChan         chan *chanmsg.Activity
 }
 
 func New(joinChan chan player.Player) *Game {
@@ -88,6 +88,9 @@ func (g *Game) AddPlayer(p player.Player) error {
 }
 
 func (g *Game) ShouldStart() bool {
+	if g.Roleset != nil {
+		log.Printf("%v/%v players", len(g.Players), len(g.Roleset.Roles))
+	}
 	return g.Roleset != nil && len(g.Players) == len(g.Roleset.Roles)
 }
 
@@ -181,6 +184,8 @@ func (g *Game) RebuildTally() {
 func (g *Game) SetRoleset(r *roleset.Roleset) error {
 	if g.State != Setup {
 		return fmt.Errorf("cannot set roleset: game is not in 'not running' phase")
+	} else if len(r.Roles) < len(g.Players) {
+		return fmt.Errorf("roleset %s only has %v roles; %v players in lobby", r.Name, len(r.Roles), len(g.Players))
 	}
 
 	g.Roleset = r
@@ -245,10 +250,16 @@ func (g *Game) VotedOut() player.Player {
 		threshold++
 	}
 
+	votes := 0
+	var ousted player.Player
 	for _, item := range g.Tally {
+		votes += len(item.Votes)
 		if len(item.Votes) >= threshold {
-			return item.Candidate
+			ousted = item.Candidate
 		}
+	}
+	if votes == len(g.PlayerList) && ousted != nil {
+		return ousted
 	}
 	return nil
 }
@@ -278,23 +289,24 @@ func (g *Game) ProcessStartActionQueue() {
 }
 
 func (g *Game) ProcessNightActionQueue() {
-	var deaths []*player.Revealed
+	var death *player.Revealed
 	for _, action := range g.NightActionQueue {
 		result := g.NightAction(action)
 		if result.PlayerMessage != "" {
 			action.From.Message(message.Private, result.PlayerMessage)
 		}
-		if result.Killed != nil {
-			deaths = append(deaths, action.To.Reveal())
-			action.To.Message(message.Dead, "")
+
+		// TODO maybe more than one death?
+		if result.Killed != nil && death == nil && !result.Killed.Role().Kill() {
+			death = result.Killed.Reveal()
+			result.Killed.Message(message.Dead, "")
 		}
 	}
 
 	g.NextPhase()
 
-	if len(deaths) > 0 {
-		// TODO maybe more than one death?
-		g.Broadcast(message.Targeted, deaths[0])
+	if death != nil {
+		g.Broadcast(message.Targeted, death)
 	}
 }
 
@@ -364,10 +376,17 @@ func (g *Game) HandlePlayerMessage() {
 			log.Printf("%s: requesting tally", from.Identifier())
 			from.Message(message.Tally, tally.Short(g.Tally))
 
+		case chanmsg.GetRolesets:
+			log.Printf("%s: requesting available rolesets", from.Identifier())
+			from.Message(message.RolesetList, roleset.List())
+
 		case chanmsg.SetRoleset:
 			log.Printf("%s: setting roleset %s", from.Identifier(), activity.Roleset)
 			sets := roleset.List()
-			g.SetRoleset(sets[activity.Roleset])
+			if err := g.SetRoleset(sets[activity.Roleset]); err != nil {
+				log.Printf("error: %s", err)
+				from.Message(message.Error, err)
+			}
 
 		case chanmsg.Vote:
 			log.Printf("%s: voting for %s", from.Identifier(), g.Players[activity.To].Identifier())
@@ -382,6 +401,7 @@ func (g *Game) HandlePlayerMessage() {
 				To:   to,
 			}
 			g.QueueNightAction(fp)
+
 		case chanmsg.ResetGame:
 			log.Printf("%s: resetting game", from.Identifier())
 			g.Reset()

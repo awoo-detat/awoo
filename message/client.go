@@ -17,6 +17,7 @@ type ClientMessage struct {
 	Vote           string `json:"voteFor"`
 	Time           string `json:"time"`
 	Roleset        string `json:"setRoleset"`
+	FetchRolesets  bool   `json:"fetchRolesets"`
 	Reset          bool   `json:"resetGame"`
 }
 

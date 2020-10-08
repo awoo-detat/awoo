@@ -29,9 +29,7 @@ func (g *Game) NightAction(fp *FingerPoint) *ActionResult {
 
 	if fp.From.Role().HasNightKill() {
 		log.Printf("%s is killing %s", fp.From.Identifier(), fp.To.Identifier())
-		if !fp.To.Role().Kill() {
-			result.Killed = fp.To
-		}
+		result.Killed = fp.To
 	}
 
 	if fp.From.Role().ViewsForMax() {
